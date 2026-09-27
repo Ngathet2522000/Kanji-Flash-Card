@@ -1,0 +1,1358 @@
+/**
+ * Kanji Flashcards SPA - Stylesheet
+ * Strict Myanmar Unicode & Japanese UTF-8 Typography System
+ */
+
+/* ==========================================================================
+   1. CSS Custom Properties (Theme Tokens)
+   ========================================================================== */
+:root {
+  /* Font Stacks */
+  --font-japanese: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  --font-myanmar: 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', 'Myanmar3', sans-serif;
+  --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Typography Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-kanji: clamp(4.5rem, 12vw, 6.5rem);
+
+  /* Line Heights (Vital for Myanmar diacritics: prevent top/bottom clipping) */
+  --lh-tight: 1.25;
+  --lh-normal: 1.5;
+  --lh-myanmar: 1.85;
+  --lh-myanmar-loose: 2.1;
+
+  /* Border Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-flip: 550ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.28);
+  --shadow-glow: 0 0 30px rgba(230, 57, 70, 0.25);
+}
+
+/* Dark Theme (Default) */
+[data-theme="dark"] {
+  --bg-app: #0d1117;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #1e293b 0%, #0d1117 75%);
+  --surface-card: #161f2e;
+  --surface-card-back: #182234;
+  --surface-card-border: rgba(255, 255, 255, 0.08);
+  --surface-hover: #223046;
+  --surface-panel: rgba(22, 31, 46, 0.75);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: #f43f5e;
+
+  --color-primary: #e63946;
+  --color-primary-hover: #f43f5e;
+  --color-primary-bg: rgba(230, 57, 70, 0.12);
+
+  --color-mastered: #10b981;
+  --color-mastered-bg: rgba(16, 185, 129, 0.14);
+  --color-mastered-border: rgba(16, 185, 129, 0.3);
+
+  --color-review: #f59e0b;
+  --color-review-bg: rgba(245, 158, 11, 0.14);
+  --color-review-border: rgba(245, 158, 11, 0.3);
+
+  --color-on: #38bdf8;
+  --color-on-bg: rgba(56, 189, 248, 0.12);
+  --color-kun: #fb7185;
+  --color-kun-bg: rgba(251, 113, 133, 0.12);
+
+  --input-bg: #1e293b;
+  --input-border: #334155;
+
+  --scrollbar-thumb: #334155;
+  --scrollbar-hover: #475569;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-app: #f8fafc;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #f1f5f9 0%, #f8fafc 80%);
+  --surface-card: #ffffff;
+  --surface-card-back: #ffffff;
+  --surface-card-border: #e2e8f0;
+  --surface-hover: #f1f5f9;
+  --surface-panel: rgba(255, 255, 255, 0.85);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --text-accent: #d90429;
+
+  --color-primary: #d90429;
+  --color-primary-hover: #b00020;
+  --color-primary-bg: rgba(217, 4, 41, 0.08);
+
+  --color-mastered: #059669;
+  --color-mastered-bg: rgba(5, 150, 105, 0.1);
+  --color-mastered-border: rgba(5, 150, 105, 0.25);
+
+  --color-review: #d97706;
+  --color-review-bg: rgba(217, 119, 6, 0.1);
+  --color-review-border: rgba(217, 119, 6, 0.25);
+
+  --color-on: #0284c7;
+  --color-on-bg: rgba(2, 132, 199, 0.1);
+  --color-kun: #e11d48;
+  --color-kun-bg: rgba(225, 29, 72, 0.1);
+
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-hover: #94a3b8;
+}
+
+/* ==========================================================================
+   2. Reset & Global Styles
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-app);
+  background-image: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  line-height: var(--lh-normal);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Strict Typography Helper Classes */
+.japanese-text {
+  font-family: var(--font-japanese);
+  letter-spacing: 0.02em;
+}
+
+.myanmar-text {
+  font-family: var(--font-myanmar);
+  line-height: var(--lh-myanmar);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ruby Text (Furigana) Styling */
+ruby {
+  ruby-position: over;
+  display: inline-flex;
+  flex-direction: column-reverse;
+  vertical-align: bottom;
+  text-align: center;
+}
+
+rt {
+  font-family: var(--font-japanese);
+  font-size: 0.62em;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-accent);
+  display: block;
+  text-align: center;
+  transform: translateY(2px);
+  user-select: none;
+}
+
+/* SVG Icons Utility */
+.icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Custom Scrollbar for Card Back & Lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+/* ==========================================================================
+   3. Main App Layout Container
+   ========================================================================== */
+.app-container {
+  width: 100%;
+  max-width: 820px;
+  padding: 1.5rem 1rem 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   4. App Header
+   ========================================================================== */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background: var(--surface-panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #e63946, #d90429);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-japanese);
+  font-size: 1.5rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.35);
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--lh-myanmar);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.btn-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+}
+
+/* Theme Icon Toggles */
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="dark"] .icon-sun { display: block; }
+[data-theme="light"] .icon-moon { display: block; }
+[data-theme="light"] .icon-sun { display: none; }
+
+/* ==========================================================================
+   5. Search & Filters Panel
+   ========================================================================== */
+.controls-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.8rem 2.8rem 0.8rem 2.75rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-myanmar);
+  font-size: var(--text-sm);
+  outline: none;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-box input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn-clear {
+  position: absolute;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-clear:hover {
+  color: var(--text-primary);
+}
+
+.filter-groups {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.filter-pills {
+  display: inline-flex;
+  background: var(--surface-panel);
+  border: 1px solid var(--surface-card-border);
+  padding: 3px;
+  border-radius: var(--radius-full);
+  gap: 2px;
+}
+
+.pill-btn {
+  padding: 0.35rem 0.85rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-myanmar);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--transition-fast);
+}
+
+.pill-btn:hover {
+  color: var(--text-primary);
+}
+
+.pill-btn.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(230, 57, 70, 0.35);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.status-review { background: var(--color-review); }
+.status-mastered { background: var(--color-mastered); }
+
+/* ==========================================================================
+   6. Progress & Stats Bar
+   ========================================================================== */
+.stats-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  background: var(--surface-panel);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+  max-width: 320px;
+}
+
+.card-counter {
+  font-family: var(--font-myanmar);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--input-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e63946, #f43f5e);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+.stats-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-myanmar);
+  font-weight: 600;
+  font-size: var(--text-xs);
+}
+
+.mini-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.badge-mastered {
+  background: var(--color-mastered-bg);
+  color: var(--color-mastered);
+  border: 1px solid var(--color-mastered-border);
+}
+
+.badge-review {
+  background: var(--color-review-bg);
+  color: var(--color-review);
+  border: 1px solid var(--color-review-border);
+}
+
+.badge-shuffle {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-card-border);
+}
+
+/* ==========================================================================
+   7. 3D Flashcard Stage & Card Faces
+   ========================================================================== */
+.flashcard-workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.card-stage {
+  perspective: 1400px;
+  width: 100%;
+  height: 480px;
+  cursor: pointer;
+  outline: none;
+}
+
+.card-stage:focus-visible .flashcard {
+  box-shadow: 0 0 0 3px var(--color-primary), var(--shadow-lg);
+}
+
+.flashcard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform var(--transition-flip);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.flashcard.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* Shared Face Styles */
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
+  border: 1px solid var(--surface-card-border);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ==========================================================================
+   8. Front Face Design
+   ========================================================================== */
+.card-front {
+  background: var(--surface-card);
+}
+
+.card-face-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.badge-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-jlpt {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border: 1px solid rgba(230, 57, 70, 0.3);
+}
+
+.badge-stroke {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--surface-card-border);
+  font-family: var(--font-myanmar);
+  text-transform: none;
+}
+
+.action-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-card-action {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-card-border);
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-card-action:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.btn-bookmark.bookmarked {
+  color: #eab308;
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.12);
+}
+.btn-bookmark.bookmarked svg {
+  fill: #eab308;
+}
+
+/* Front Body (Giant Kanji) */
+.card-front-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto 0;
+  gap: 1rem;
+}
+
+.kanji-display-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.kanji-display {
+  font-size: var(--text-kanji);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  user-select: none;
+  transition: transform var(--transition-bounce);
+}
+
+.card-front:hover .kanji-display {
+  transform: scale(1.03);
+}
+
+.radical-tag {
+  background: var(--surface-hover);
+  border: 1px solid var(--surface-card-border);
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.radical-tag .tag-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.front-readings-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  border: 1px dashed var(--surface-card-border);
+}
+
+.hint-label {
+  color: var(--text-muted);
+}
+
+.hint-sep {
+  color: var(--text-muted);
+}
+
+/* Front Footer */
+.card-face-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--surface-card-border);
+}
+
+.flip-hint-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.hint-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.card-stage:hover .flip-hint-text {
+  color: var(--color-primary);
+}
+
+/* ==========================================================================
+   9. Back Face Design (Detailed Meaning & Readings)
+   ========================================================================== */
+.card-back {
+  background: var(--surface-card-back);
+  transform: rotateY(180deg);
+}
+
+.back-title-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-kanji-mini {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.card-back-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0.75rem 0;
+  padding-right: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Meaning Section */
+.meaning-section {
+  text-align: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface-card-border);
+}
+
+.myanmar-meaning-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: var(--lh-myanmar);
+  margin-bottom: 0.25rem;
+}
+
+.myanmar-detail-text {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--lh-myanmar);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Readings Grid */
+.readings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.reading-card {
+  background: var(--surface-hover);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.reading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.reading-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.tag-on {
+  background: var(--color-on-bg);
+  color: var(--color-on);
+}
+
+.tag-kun {
+  background: var(--color-kun-bg);
+  color: var(--color-kun);
+}
+
+.reading-sub-myanmar {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.reading-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.reading-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.reading-kana {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.reading-romaji {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Mnemonic Box */
+.mnemonic-box {
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+}
+
+.mnemonic-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.mnemonic-title {
+  font-size: var(--text-xs);
+  color: #eab308;
+}
+
+.mnemonic-text {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--lh-myanmar);
+}
+
+/* Vocabulary Section */
+.details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  line-height: var(--lh-myanmar);
+}
+
+.vocab-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.5rem;
+}
+
+.vocab-item {
+  background: var(--surface-hover);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vocab-jp {
+  display: flex;
+  flex-direction: column;
+}
+
+.vocab-word {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.vocab-reading {
+  font-size: 0.75rem;
+  color: var(--text-accent);
+}
+
+.vocab-myanmar {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  text-align: right;
+  line-height: var(--lh-myanmar);
+}
+
+/* Example Sentences Section */
+.examples-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.example-card {
+  background: var(--surface-hover);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.example-jp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.example-ruby-text {
+  font-size: var(--text-base);
+  line-height: 1.9;
+}
+
+.btn-speak-sentence {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.btn-speak-sentence:hover {
+  color: var(--color-primary);
+}
+
+.example-romaji {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.example-myanmar {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--lh-myanmar);
+  border-top: 1px dashed var(--surface-card-border);
+  padding-top: 0.3rem;
+  margin-top: 0.2rem;
+}
+
+/* ==========================================================================
+   10. Navigation & Action Bars
+   ========================================================================== */
+.nav-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--surface-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--surface-card-border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-nav:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-nav .nav-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-flip-main {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: transparent;
+  padding: 0.75rem 1.75rem;
+  box-shadow: 0 4px 16px rgba(230, 57, 70, 0.35);
+}
+
+.btn-flip-main:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(230, 57, 70, 0.45);
+}
+
+.btn-nav-secondary {
+  color: var(--text-secondary);
+}
+
+/* Mastery Buttons (Study Feedback) */
+.mastery-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-mastery {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-mastery-icon {
+  font-size: 1.35rem;
+}
+
+.btn-mastery-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.mastery-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  line-height: var(--lh-myanmar);
+}
+
+.mastery-sub {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.btn-review {
+  background: var(--color-review-bg);
+  border-color: var(--color-review-border);
+  color: var(--color-review);
+}
+
+.btn-review:hover {
+  background: rgba(245, 158, 11, 0.22);
+  transform: translateY(-2px);
+}
+
+.btn-mastered {
+  background: var(--color-mastered-bg);
+  border-color: var(--color-mastered-border);
+  color: var(--color-mastered);
+}
+
+.btn-mastered:hover {
+  background: rgba(16, 185, 129, 0.22);
+  transform: translateY(-2px);
+}
+
+/* Highlight Active Card Mastery State */
+.btn-mastery.is-active {
+  box-shadow: 0 0 0 2px currentColor;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   11. Footer & Dialogs
+   ========================================================================== */
+.app-footer {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem 0;
+  border-top: 1px solid var(--surface-card-border);
+}
+
+.footer-text {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Keyboard Shortcuts Dialog */
+.shortcuts-dialog {
+  margin: auto;
+  border: 1px solid var(--surface-card-border);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-xl);
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+}
+
+.shortcuts-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+}
+
+.dialog-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--surface-card-border);
+  padding-bottom: 0.75rem;
+}
+
+.dialog-header h2 {
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.btn-close-dialog {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.btn-close-dialog:hover {
+  color: var(--text-primary);
+}
+
+.shortcuts-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-hover);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+.shortcut-key kbd {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+.shortcut-desc {
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   12. Floating Toast Notification
+   ========================================================================== */
+.toast-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--surface-panel);
+  color: var(--text-primary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--surface-card-border);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-myanmar);
+  font-size: var(--text-xs);
+  box-shadow: var(--shadow-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(15px);
+  animation: toastIn 0.3s forwards, toastOut 0.3s forwards 2.4s;
+}
+
+@keyframes toastIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toastOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* ==========================================================================
+   13. Responsive Media Queries
+   ========================================================================== */
+@media (max-width: 640px) {
+  .app-container {
+    padding: 1rem 0.75rem 2.5rem 0.75rem;
+    gap: 1rem;
+  }
+
+  .app-header {
+    padding: 0.65rem 0.85rem;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.25rem;
+  }
+
+  .brand-title {
+    font-size: 1.1rem;
+  }
+
+  .card-stage {
+    height: 440px;
+  }
+
+  .card-face {
+    padding: 1.15rem;
+  }
+
+  .readings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vocab-list {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-controls {
+    gap: 0.4rem;
+  }
+
+  .btn-nav {
+    padding: 0.65rem 0.85rem;
+    font-size: var(--text-xs);
+  }
+
+  .btn-flip-main {
+    padding: 0.65rem 1.2rem;
+  }
+
+  .btn-mastery {
+    padding: 0.65rem 0.85rem;
+  }
+}

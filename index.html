@@ -1,0 +1,4508 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ဂျပန်စာ ကန်ဂျီ လက်ကွက်ကတ်များ | Kanji Flashcard App</title>
+
+  <!-- App Favicons (Matching the App Logo: Red Gradient with 漢) -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <meta name="theme-color" content="#e63946">
+
+  <!-- Google Fonts: Myanmar (Padauk, Noto Sans Myanmar) & Japanese (Noto Sans JP) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Myanmar:wght@400;500;600;700&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       1. CSS Reset & Variables
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Typography Requirement: Strictly support Japanese & Myanmar Unicode */
+      --font-stack: 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', 'Noto Sans JP', sans-serif;
+      --font-japanese: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+      --font-myanmar: 'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', sans-serif;
+
+      /* Color Palette (Modern, sleek dark-indigo aesthetic) */
+      --bg-gradient: radial-gradient(circle at 50% 10%, #1e293b 0%, #0f172a 100%);
+      --surface-card: #1e293b;
+      --surface-card-back: #192231;
+      --surface-border: rgba(255, 255, 255, 0.1);
+      --surface-hover: #334155;
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-accent: #f43f5e;
+
+      --primary-color: #e63946;
+      --primary-hover: #f43f5e;
+      --secondary-color: #0284c7;
+
+      /* Myanmar Unicode Line Height (Prevents vertical clipping of stacked diacritics) */
+      --lh-myanmar: 1.85;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: var(--font-stack);
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: max(1.25rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1.25rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+      line-height: 1.6;
+      overflow-x: hidden;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ==========================================================================
+       2. Application Wrapper & Header
+       ========================================================================== */
+    .app-container {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      margin: 0 auto;
+    }
+
+    /* Top Action Bar (Import PDF & Export PDF) */
+    .top-toolbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .app-logo {
+      font-size: 1.4rem;
+      background: linear-gradient(135deg, #e63946, #d90429);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .app-title-group h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .app-title-group p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: var(--lh-myanmar);
+    }
+
+    .pdf-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .user-session-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      font-size: 0.775rem;
+      font-weight: 500;
+      color: #94a3b8;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .user-session-badge .user-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+      flex-shrink: 0;
+    }
+
+    /* Hidden native file input */
+    .file-input-hidden {
+      display: none;
+    }
+
+    /* Buttons Style */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1rem;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-stack);
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-primary);
+      border-color: var(--surface-border);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary-color);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary-color);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(230, 57, 70, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: #ef4444;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .btn-icon-svg {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2;
+    }
+
+    /* ==========================================================================
+       3. Centered 3D Flashcard Stage & Upload State
+       ========================================================================== */
+    .flashcard-workspace-container {
+      width: 100%;
+      min-height: 440px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Upload Placeholder Screen (When no PDF is imported) */
+    .upload-placeholder {
+      width: 100%;
+      height: 440px;
+      border: 2px dashed rgba(255, 255, 255, 0.22);
+      border-radius: var(--radius-lg);
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      padding: 2.25rem 1.5rem;
+      text-align: center;
+      transition: all 0.25s ease;
+    }
+
+    .upload-placeholder:hover {
+      border-color: var(--primary-color);
+      background: rgba(30, 41, 59, 0.75);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .upload-icon-large {
+      width: 64px;
+      height: 64px;
+      color: var(--primary-color);
+      background: rgba(230, 57, 70, 0.12);
+      padding: 14px;
+      border-radius: 50%;
+    }
+
+    .upload-placeholder-title {
+      font-family: var(--font-myanmar);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: var(--lh-myanmar);
+      margin-bottom: 0.25rem;
+    }
+
+    .upload-placeholder-sub {
+      font-family: var(--font-myanmar);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      max-width: 440px;
+      line-height: var(--lh-myanmar);
+    }
+
+    .sample-btn-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 0.5rem;
+    }
+
+    .flashcard-stage {
+      perspective: 1200px;
+      width: 100%;
+      height: 440px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .flashcard-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Active flipped state triggered via CSS class */
+    .flashcard-inner.flipped {
+      transform: rotateY(180deg);
+    }
+
+    /* Card Faces Shared Rules */
+    .card-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--surface-border);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       4. Card Front (Japanese Kanji)
+       ========================================================================== */
+    .card-front {
+      background: var(--surface-card);
+      background-image: radial-gradient(circle at 50% 20%, #293548 0%, #1e293b 80%);
+    }
+
+    .card-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .badge-tag {
+      background: rgba(230, 57, 70, 0.15);
+      color: #ff6b6b;
+      border: 1px solid rgba(230, 57, 70, 0.3);
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .stroke-tag {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      border: 1px solid var(--surface-border);
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      line-height: var(--lh-myanmar);
+    }
+
+    .card-front-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: auto 0;
+    }
+
+    .kanji-hero {
+      font-family: var(--font-japanese);
+      font-size: clamp(5.5rem, 15vw, 7.5rem);
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      transition: transform 0.3s ease;
+    }
+
+    .flashcard-stage:hover .kanji-hero {
+      transform: scale(1.04);
+    }
+
+    .readings-hint {
+      font-family: var(--font-japanese);
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--surface-border);
+    }
+
+    .card-footer-prompt {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--surface-border);
+      padding-top: 0.85rem;
+      line-height: var(--lh-myanmar);
+    }
+
+    /* ==========================================================================
+       5. Card Back (Myanmar Meaning & Details)
+       ========================================================================== */
+    .card-back {
+      background: var(--surface-card-back);
+      background-image: radial-gradient(circle at 50% 20%, #202b3c 0%, #192231 80%);
+      transform: rotateY(180deg);
+    }
+
+    .card-back-content {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      padding-right: 0.35rem;
+      margin: 0.5rem 0;
+    }
+
+    /* Custom Back Scrollbar */
+    .card-back-content::-webkit-scrollbar {
+      width: 5px;
+    }
+    .card-back-content::-webkit-scrollbar-thumb {
+      background: var(--surface-border);
+      border-radius: 10px;
+    }
+
+    .card-reading-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-family: var(--font-japanese);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.4rem 1.15rem;
+      border-radius: 9999px;
+      margin-bottom: 0.85rem;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+      letter-spacing: 0.04em;
+    }
+    .reading-badge-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #94a3b8;
+      font-family: var(--font-myanmar);
+      letter-spacing: normal;
+    }
+    .reading-badge-text {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: #38bdf8;
+      font-family: var(--font-japanese);
+    }
+
+    .myanmar-primary-meaning {
+      text-align: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .myanmar-meaning-title {
+      font-family: var(--font-myanmar);
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #38bdf8;
+      line-height: var(--lh-myanmar);
+      margin-bottom: 0.25rem;
+    }
+
+    .myanmar-desc-text {
+      font-family: var(--font-myanmar);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: var(--lh-myanmar);
+    }
+
+    /* Readings Split Grid */
+    .readings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .reading-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem;
+    }
+
+    .reading-header {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .reading-value {
+      font-family: var(--font-japanese);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .reading-romaji {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-left: 0.25rem;
+    }
+
+    /* Examples & Vocab */
+    .vocab-block {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .vocab-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.825rem;
+    }
+
+    .vocab-jp {
+      font-family: var(--font-japanese);
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .vocab-myanmar {
+      font-family: var(--font-myanmar);
+      color: var(--text-secondary);
+      line-height: var(--lh-myanmar);
+      text-align: right;
+    }
+
+    /* ==========================================================================
+       6. Bottom Navigation Controls (Previous, Flip, Next)
+       ========================================================================== */
+    .bottom-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .btn-nav {
+      padding: 0.75rem 1.4rem;
+      font-size: 0.9rem;
+      border-radius: var(--radius-md);
+    }
+
+    .card-indicator {
+      font-family: var(--font-myanmar);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      min-width: 90px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+
+    /* ==========================================================================
+       8. Filter Bar & Mode Switcher
+       ========================================================================== */
+    .filter-bar {
+      display: flex;
+      gap: 0.55rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 0.5rem 0.75rem;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.42rem 0.85rem;
+      border-radius: 20px;
+      border: 1px solid var(--surface-border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-stack);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .filter-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .filter-btn.active {
+      background: #2563eb;
+      border-color: #3b82f6;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .filter-btn.filter-learning.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    }
+
+    .filter-btn.filter-review.active,
+    .filter-btn.filter-unlearn.active {
+      background: #d97706;
+      border-color: #f59e0b;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+
+    .filter-btn.filter-memorized.active,
+    .filter-btn.filter-learned.active {
+      background: #059669;
+      border-color: #10b981;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    .pill-count {
+      background: rgba(255, 255, 255, 0.18);
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .filter-btn.filter-unlearn .pill-count {
+      background: rgba(0, 0, 0, 0.25);
+      color: #fef3c7;
+    }
+
+    /* ==========================================================================
+       8b. Custom Study Order Bar (Memory Optimization vs PDF Sequence)
+       ========================================================================== */
+    .order-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      width: 100%;
+      background: rgba(30, 41, 59, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.85rem;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      animation: fadeInOrder 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    @keyframes fadeInOrder {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .order-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .order-title-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      flex-wrap: wrap;
+    }
+
+    .order-icon-svg {
+      color: #818cf8;
+      flex-shrink: 0;
+    }
+
+    .order-label-title {
+      font-family: var(--font-myanmar);
+    }
+
+    .order-status-pill {
+      background: rgba(99, 102, 241, 0.18);
+      color: #c7d2fe;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      padding: 0.15rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-reshuffle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.75rem;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #f1f5f9;
+      font-family: var(--font-myanmar);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-reshuffle:hover {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: #818cf8;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-reshuffle:active {
+      transform: scale(0.96);
+    }
+
+    .order-mode-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.45rem;
+      width: 100%;
+    }
+
+    .order-mode-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.42rem 0.55rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-border);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text-secondary);
+      font-family: var(--font-stack);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .order-mode-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .order-mode-btn.active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(79, 70, 229, 0.95) 100%);
+      border-color: #a5b4fc;
+      color: #ffffff;
+      box-shadow: 0 3px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .order-mode-btn[data-order="SHUFFLE"].active {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.9) 0%, rgba(219, 39, 119, 0.95) 100%);
+      border-color: #f472b6;
+      box-shadow: 0 3px 12px rgba(236, 72, 153, 0.4);
+    }
+
+    .order-mode-btn[data-order="REVIEW_FIRST"].active {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.95) 100%);
+      border-color: #fde047;
+      box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .order-mode-btn[data-order="PDF_ORDER"].active {
+      background: linear-gradient(135deg, rgba(71, 85, 105, 0.9) 0%, rgba(51, 65, 85, 0.95) 100%);
+      border-color: #cbd5e1;
+      box-shadow: 0 3px 12px rgba(71, 85, 105, 0.4);
+    }
+
+    .card-source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: rgba(255, 255, 255, 0.07);
+      color: #94a3b8;
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      padding: 0.18rem 0.55rem;
+      border-radius: 12px;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* ==========================================================================
+       9. Status Badges & Revision Indicators
+       ========================================================================== */
+    .badge-status {
+      padding: 0.22rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      letter-spacing: 0.02em;
+      transition: all 0.25s ease;
+    }
+
+    .badge-status.badge-learned {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.38);
+    }
+
+    .badge-status.badge-unlearned {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      animation: pulseAlert 2.4s infinite ease-in-out;
+    }
+
+    .badge-status.badge-new {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-secondary);
+      border: 1px solid var(--surface-border);
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+      50% { box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.35); }
+    }
+
+    .revision-counter-tag {
+      font-size: 0.7rem;
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      padding: 0.18rem 0.5rem;
+      border-radius: 12px;
+      line-height: var(--lh-myanmar);
+    }
+
+    .btn-speak {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--surface-border);
+      color: var(--text-secondary);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-speak:hover {
+      background: var(--surface-hover);
+      color: #38bdf8;
+      border-color: #38bdf8;
+      transform: scale(1.1);
+    }
+
+    /* ==========================================================================
+       10. Revisions to Remember Box on Card Back
+       ========================================================================== */
+    .revision-box {
+      width: 100%;
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      box-shadow: inset 0 0 16px rgba(245, 158, 11, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .revision-box.pulse-highlight {
+      animation: revisionPulse 1.2s ease-out;
+    }
+
+    @keyframes revisionPulse {
+      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); border-color: #f59e0b; }
+      100% { box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0); border-color: rgba(245, 158, 11, 0.35); }
+    }
+
+    .revision-box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fbbf24;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border-bottom: 1px dashed rgba(245, 158, 11, 0.3);
+      padding-bottom: 0.35rem;
+      font-family: var(--font-myanmar);
+      line-height: var(--lh-myanmar);
+    }
+
+    .revision-mnemonic-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .revision-label {
+      font-size: 0.72rem;
+      color: #fbbf24;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .revision-mnemonic-text {
+      font-size: 0.85rem;
+      color: #f1f5f9;
+      line-height: var(--lh-myanmar);
+      font-family: var(--font-myanmar);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.45rem 0.65rem;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid #fbbf24;
+    }
+
+    .revision-vocab-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .revision-vocab-tag {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--surface-border);
+      padding: 0.18rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      color: #f8fafc;
+      font-family: var(--font-stack);
+      line-height: var(--lh-myanmar);
+    }
+
+    .revision-practice-prompt {
+      font-size: 0.76rem;
+      color: #f59e0b;
+      font-family: var(--font-myanmar);
+      line-height: var(--lh-myanmar);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(245, 158, 11, 0.08);
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    /* ==========================================================================
+       11. Study Action Bar (Learn & Unlearn Controls)
+       ========================================================================== */
+    .study-action-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-study-unlearn {
+      flex: 1;
+      max-width: 240px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.72rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-family: var(--font-stack);
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .btn-study-unlearn:hover {
+      background: #f59e0b;
+      color: #0f172a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 18px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-study-unlearn.is-active {
+      background: #f59e0b;
+      color: #0f172a;
+      border-color: #f59e0b;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.5);
+    }
+
+    .btn-study-learn {
+      flex: 1;
+      max-width: 240px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.72rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-family: var(--font-stack);
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .btn-study-learn:hover {
+      background: #10b981;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-study-learn.is-active {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-revisions-badge {
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .btn-revisions-badge:hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: #fbbf24;
+      color: #fef08a;
+    }
+
+    /* ==========================================================================
+       12. Revisions Drawer / Modal Dialog
+       ========================================================================== */
+    .revisions-dialog {
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-lg);
+      background: #1e293b;
+      color: var(--text-primary);
+      max-width: 650px;
+      width: 92%;
+      max-height: 85vh;
+      padding: 1.5rem;
+      margin: auto;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(16px);
+      font-family: var(--font-stack);
+    }
+
+    .revisions-dialog::backdrop {
+      background: rgba(10, 15, 26, 0.75);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.6rem;
+      cursor: pointer;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-sm);
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+
+    .btn-close-modal:hover {
+      background: var(--surface-hover);
+      color: #ffffff;
+    }
+
+    .modal-revisions-list {
+      overflow-y: auto;
+      max-height: 55vh;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      padding-right: 0.4rem;
+    }
+
+    .modal-revisions-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .modal-revisions-list::-webkit-scrollbar-thumb {
+      background: var(--surface-border);
+      border-radius: 10px;
+    }
+
+    .modal-revision-card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius-md);
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .modal-revision-card:hover {
+      border-color: #f59e0b;
+      background: rgba(30, 41, 59, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .modal-rev-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .modal-rev-kanji {
+      font-family: var(--font-japanese);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .modal-rev-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .modal-rev-reading {
+      font-size: 0.8rem;
+      color: #38bdf8;
+      font-family: var(--font-japanese);
+    }
+
+    .modal-rev-myanmar {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f8fafc;
+      font-family: var(--font-myanmar);
+      line-height: var(--lh-myanmar);
+    }
+
+    .modal-rev-mnemonic {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-family: var(--font-myanmar);
+      line-height: var(--lh-myanmar);
+    }
+
+    .modal-rev-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: flex-end;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      border-top: 1px solid var(--surface-border);
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* ==========================================================================
+       13. Empty State in Flashcard Stage
+       ========================================================================== */
+    .empty-filter-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .empty-filter-icon {
+      font-size: 3rem;
+    }
+
+    .empty-filter-title {
+      font-family: var(--font-myanmar);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: var(--lh-myanmar);
+    }
+
+    .empty-filter-desc {
+      font-family: var(--font-myanmar);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      max-width: 360px;
+      line-height: var(--lh-myanmar);
+    }
+
+    /* ==========================================================================
+       14. Toast Notifications
+       ========================================================================== */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+      max-width: 90vw;
+    }
+
+    .toast {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f8fafc;
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      font-family: var(--font-myanmar);
+      font-size: 0.85rem;
+      line-height: var(--lh-myanmar);
+      animation: toastSlideUp 0.25s ease-out;
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @keyframes toastSlideUp {
+      from { transform: translateY(16px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ==========================================================================
+       15. Comprehensive Multi-Device Responsive System
+       ========================================================================== */
+
+    /* Touch & Accessibility Standards */
+    @media (hover: none) and (pointer: coarse) {
+      .btn, .btn-nav, .filter-btn, .btn-study-unlearn, .btn-study-learn {
+        min-height: 44px;
+      }
+      .btn-speak {
+        width: 36px;
+        height: 36px;
+      }
+    }
+
+    /* Tablet & Medium Displays (<= 768px) */
+    @media (max-width: 768px) {
+      body {
+        padding: max(1rem, env(safe-area-inset-top)) max(0.85rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(0.85rem, env(safe-area-inset-left));
+      }
+
+      .app-container {
+        max-width: 100%;
+        gap: 1.15rem;
+      }
+
+      .flashcard-stage {
+        height: 425px;
+      }
+    }
+
+    /* Standard Mobile Phones (<= 640px) */
+    @media (max-width: 640px) {
+      body {
+        padding: max(0.65rem, env(safe-area-inset-top)) max(0.65rem, env(safe-area-inset-right)) max(0.85rem, env(safe-area-inset-bottom)) max(0.65rem, env(safe-area-inset-left));
+      }
+
+      .app-container {
+        gap: 0.85rem;
+      }
+
+      /* Top Toolbar */
+      .top-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.75rem 0.85rem;
+        gap: 0.75rem;
+      }
+
+      .app-brand {
+        justify-content: flex-start;
+      }
+
+      .app-title-group h1 {
+        font-size: 1.02rem;
+      }
+
+      .app-title-group p {
+        font-size: 0.72rem;
+      }
+
+      .pdf-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+        width: 100%;
+      }
+
+      .pdf-actions .btn,
+      .pdf-actions label.btn {
+        flex: 1;
+        padding: 0.55rem 0.3rem;
+        font-size: 0.74rem;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-height: 42px;
+      }
+
+      .pdf-actions .btn-icon-svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      /* Filter Bar (2x2 grid on mobile for 4 status segments) */
+      .filter-bar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.35rem;
+        padding: 0.35rem;
+        width: 100%;
+      }
+
+      .filter-btn {
+        padding: 0.45rem 0.25rem;
+        font-size: 0.74rem;
+        justify-content: center;
+        text-align: center;
+        border-radius: var(--radius-sm);
+        white-space: nowrap;
+        min-height: 40px;
+      }
+
+      .filter-btn .pill-count {
+        padding: 1px 5px;
+        font-size: 0.68rem;
+      }
+
+      /* Order Bar (2x2 grid on mobile) */
+      .order-bar {
+        padding: 0.5rem 0.65rem;
+      }
+
+      .order-mode-selector {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.35rem;
+      }
+
+      .order-mode-btn {
+        padding: 0.42rem 0.35rem;
+        font-size: 0.72rem;
+      }
+
+      /* Flashcard Stage */
+      .flashcard-stage {
+        height: clamp(385px, 58vh, 430px);
+      }
+
+      .upload-placeholder {
+        height: clamp(385px, 58vh, 430px);
+        padding: 1.5rem 1rem;
+      }
+
+      .upload-placeholder-title {
+        font-size: 1.15rem;
+      }
+
+      .upload-placeholder-sub {
+        font-size: 0.8rem;
+      }
+
+      .card-face {
+        padding: 1.1rem;
+      }
+
+      .kanji-hero {
+        font-size: clamp(4.2rem, 18vw, 6.5rem);
+      }
+
+      .myanmar-meaning-title {
+        font-size: clamp(1.35rem, 5vw, 1.65rem);
+      }
+
+      .myanmar-desc-text {
+        font-size: 0.82rem;
+      }
+
+      .card-reading-badge {
+        font-size: 1rem;
+        padding: 0.32rem 0.85rem;
+        gap: 0.35rem;
+      }
+      .reading-badge-label {
+        font-size: 0.72rem;
+      }
+      .reading-badge-text {
+        font-size: 1.05rem;
+      }
+
+      .card-back-content {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      /* Revision Box on Card Back */
+      .revision-box {
+        padding: 0.65rem 0.75rem;
+        gap: 0.45rem;
+      }
+
+      .revision-box-header {
+        font-size: 0.75rem;
+      }
+
+      .revision-counter-tag {
+        font-size: 0.68rem;
+      }
+
+      .revision-mnemonic-text {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.55rem;
+      }
+
+      .revision-vocab-tag {
+        font-size: 0.72rem;
+        padding: 0.15rem 0.45rem;
+      }
+
+      .revision-practice-prompt {
+        font-size: 0.72rem;
+        padding: 0.25rem 0.4rem;
+      }
+
+      /* Study Action Bar */
+      .study-action-bar {
+        width: 100%;
+        gap: 0.5rem;
+      }
+
+      .btn-study-unlearn,
+      .btn-study-learn {
+        flex: 1;
+        max-width: none;
+        padding: 0.65rem 0.5rem;
+        font-size: clamp(0.76rem, 3vw, 0.86rem);
+        min-height: 44px;
+      }
+
+      /* Bottom Navigation */
+      .bottom-controls {
+        gap: 0.35rem;
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .btn-nav {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.8rem;
+        min-height: 44px;
+        flex: 1;
+        max-width: 105px;
+      }
+
+      .card-indicator {
+        font-size: 0.78rem;
+        min-width: 72px;
+        flex-shrink: 0;
+      }
+
+      /* Revisions Drawer Dialog */
+      .revisions-dialog {
+        width: 95%;
+        max-height: 88dvh;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+      }
+
+      .modal-revision-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+        padding: 0.75rem 0.85rem;
+      }
+
+      .modal-rev-left {
+        gap: 0.75rem;
+      }
+
+      .modal-rev-kanji {
+        font-size: 1.85rem;
+        min-width: 38px;
+      }
+
+      .modal-rev-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        width: 100%;
+        border-top: 1px dashed rgba(255, 255, 255, 0.1);
+        padding-top: 0.5rem;
+      }
+
+      .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+
+      .modal-footer .btn {
+        width: 100%;
+      }
+
+      /* Toast Notification */
+      .toast-container {
+        bottom: max(16px, env(safe-area-inset-bottom));
+        right: max(16px, env(safe-area-inset-right));
+        left: max(16px, env(safe-area-inset-left));
+        max-width: none;
+      }
+
+      .toast {
+        width: 100%;
+        font-size: 0.8rem;
+        padding: 0.65rem 1rem;
+      }
+    }
+
+    /* Small Mobile Phones (<= 380px, e.g. iPhone SE, Galaxy A0x) */
+    @media (max-width: 380px) {
+      body {
+        padding: max(0.45rem, env(safe-area-inset-top)) max(0.45rem, env(safe-area-inset-right)) max(0.65rem, env(safe-area-inset-bottom)) max(0.45rem, env(safe-area-inset-left));
+      }
+
+      .top-toolbar {
+        padding: 0.55rem 0.65rem;
+      }
+
+      .pdf-actions {
+        gap: 0.25rem;
+      }
+
+      .pdf-actions .btn,
+      .pdf-actions label.btn {
+        padding: 0.45rem 0.18rem;
+        font-size: 0.68rem;
+      }
+
+      .filter-btn {
+        padding: 0.35rem 0.15rem;
+        font-size: 0.68rem;
+      }
+
+      .card-face {
+        padding: 0.85rem;
+      }
+
+      .kanji-hero {
+        font-size: 3.8rem;
+      }
+
+      .btn-nav {
+        padding: 0.55rem 0.45rem;
+        font-size: 0.74rem;
+      }
+
+      .card-indicator {
+        font-size: 0.72rem;
+        min-width: 58px;
+      }
+    }
+
+    /* Mobile Landscape Mode (Phones held horizontally: max-height <= 520px) */
+    @media (max-height: 520px) and (orientation: landscape) {
+      body {
+        padding: 0.5rem max(1rem, env(safe-area-inset-right)) 0.5rem max(1rem, env(safe-area-inset-left));
+        align-items: flex-start;
+      }
+
+      .app-container {
+        gap: 0.65rem;
+      }
+
+      .top-toolbar {
+        padding: 0.45rem 0.75rem;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .flashcard-stage {
+        height: clamp(230px, 52vh, 280px);
+      }
+
+      .upload-placeholder {
+        height: clamp(230px, 52vh, 280px);
+        padding: 1rem;
+      }
+
+      .kanji-hero {
+        font-size: 3.4rem;
+      }
+
+      .card-face {
+        padding: 0.75rem 1rem;
+      }
+
+      .card-footer-prompt {
+        padding-top: 0.35rem;
+        font-size: 0.75rem;
+      }
+
+      .myanmar-meaning-title {
+        font-size: 1.25rem;
+      }
+
+      .revision-box {
+        padding: 0.45rem 0.65rem;
+      }
+
+      .revisions-dialog {
+        max-height: 94dvh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Toolbar with Import PDF and Export PDF -->
+    <header class="top-toolbar">
+      <div class="app-brand">
+        <div class="app-logo">漢</div>
+        <div class="app-title-group">
+          <h1>Kanji Flashcard</h1>
+          <p>ဂျပန်စာ ကန်ဂျီ လက်ကွက်ကတ်များ</p>
+        </div>
+      </div>
+
+      <div class="pdf-actions">
+        <!-- Public User Session Badge -->
+        <div class="user-session-badge" id="user-session-badge" title="အများသုံး လေ့လာသူအလိုက် သီးသန့်ကတ်ပြားများ (Isolated Public Session)">
+          <span class="user-dot"></span>
+          <span id="user-session-text">👤 My Deck</span>
+        </div>
+
+        <!-- Hidden file input for Import PDF / CSV -->
+        <input type="file" id="pdf-import-input" class="file-input-hidden" accept=".pdf,application/pdf,.csv,text/csv,.txt,text/plain">
+        
+        <!-- Button for Revisions to Remember Drawer -->
+        <button id="btn-revisions-drawer" class="btn btn-outline btn-revisions-badge" title="ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီများ ကြည့်ရှုရန်">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+          </svg>
+          <span>ပြန်ကျက်ရန် (<span id="revisions-count-badge">၀</span>)</span>
+        </button>
+
+        <!-- Styled button for Import PDF / CSV (triggers file input) -->
+        <label for="pdf-import-input" class="btn btn-outline" title="PDF / CSV ဖိုင်မှ ကန်ဂျီစာရင်းများ ထည့်သွင်းရန်">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Import PDF / CSV</span>
+        </label>
+
+        <!-- Button for Export PDF -->
+        <button id="btn-export-pdf" class="btn btn-primary" title="ကန်ဂျီကတ်ပြားများကို PDF အဖြစ် ထုတ်ယူရန်">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export PDF</span>
+        </button>
+
+        <!-- Button to Clear All Flashcards (Purge current user's deck & study records) -->
+        <button id="btn-clear-all" class="btn btn-outline btn-danger" title="လက်ရှိ ကန်ဂျီကတ်များနှင့် လေ့လာမှုမှတ်တမ်းများကို ရှင်းလင်းရန် (Clear My Deck)">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+          <span>Clear Deck</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Study Mode / Filter Bar -->
+    <div class="filter-bar" id="filter-bar" role="tablist" aria-label="Deck Filter">
+      <button type="button" class="filter-btn active" data-filter="ALL" id="filter-btn-all" title="ကတ်အားလုံး ကြည့်ရှုရန် (All Cards)">
+        <span>အားလုံး (All)</span>
+        <span class="pill-count" id="count-all">၀</span>
+      </button>
+
+      <button type="button" class="filter-btn filter-learning" data-filter="LEARNING" id="filter-btn-learning" title="မကျက်ရသေးသော ကတ်အသစ်များ (Learning / New Cards)">
+        <span>📖 New (အသစ်)</span>
+        <span class="pill-count" id="count-learning">၀</span>
+      </button>
+
+      <button type="button" class="filter-btn filter-review filter-unlearn" data-filter="REVIEW" id="filter-btn-review" title="ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီများ (To Review / ပြန်ကျက်ရန်) - Shortcut: R">
+        <span>⚠️ ပြန်ကျက်ရန်</span>
+        <span class="pill-count" id="count-review">၀</span>
+      </button>
+
+      <button type="button" class="filter-btn filter-memorized filter-learned" data-filter="MEMORIZED" id="filter-btn-memorized" title="မှတ်မိပြီးသော ကန်ဂျီများ (Memorized / မှတ်မိပြီ)">
+        <span>✓ မှတ်မိပြီ</span>
+        <span class="pill-count" id="count-memorized">၀</span>
+      </button>
+    </div>
+
+    <!-- Custom Study Order Bar: Memory Optimization vs PDF Order -->
+    <div class="order-bar" id="order-bar" style="display: none;">
+      <div class="order-bar-header">
+        <div class="order-title-wrapper">
+          <svg class="order-icon-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 6v6l4 2"></path>
+          </svg>
+          <span class="order-label-title">လေ့လာမှု အစီအစဉ်:</span>
+          <span class="order-status-pill" id="active-order-badge">🧠 မှတ်ဉာဏ်တိုး (Smart)</span>
+        </div>
+
+        <button type="button" class="btn-reshuffle" id="btn-reshuffle" title="အစီအစဉ်အသစ် ပြန်လည်မွှေနှောက်ရန် (Reshuffle Order - Shortcut: S)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="16 3 21 3 21 8"></polyline>
+            <line x1="4" y1="20" x2="21" y2="3"></line>
+            <polyline points="21 16 21 21 16 21"></polyline>
+            <line x1="15" y1="15" x2="21" y2="21"></line>
+            <line x1="4" y1="4" x2="9" y2="9"></line>
+          </svg>
+          <span>ပြန်မွှေရန် (Reshuffle)</span>
+        </button>
+      </div>
+
+      <div class="order-mode-selector" role="radiogroup" aria-label="Study Order Options">
+        <button type="button" class="order-mode-btn active" data-order="SMART" id="order-btn-smart" title="မှတ်ဉာဏ်ပိုကောင်းစေရန် ကတ်များကို အချိုးညီ ခွဲခြားစီစဉ်ထားပါသည် (Smart Memory Interleaved)">
+          <span class="order-btn-icon">🧠</span>
+          <span class="order-btn-text">မှတ်ဉာဏ်တိုး (Smart)</span>
+        </button>
+
+        <button type="button" class="order-mode-btn" data-order="SHUFFLE" id="order-btn-shuffle" title="ကျပန်း စီစဉ်မှုဖြင့် မထင်မှတ်ဘဲ မှတ်မိမှု စမ်းသပ်ရန် (Random Shuffle)">
+          <span class="order-btn-icon">🔀</span>
+          <span class="order-btn-text">ကျပန်း (Shuffle)</span>
+        </button>
+
+        <button type="button" class="order-mode-btn" data-order="REVIEW_FIRST" id="order-btn-review-first" title="ပြန်ကျက်ရန် လိုအပ်သော ကတ်များကို အရင်လေ့လာရန် (Review Priority)">
+          <span class="order-btn-icon">⚠️</span>
+          <span class="order-btn-text">ပြန်ကျက် ဦးစားပေး</span>
+        </button>
+
+        <button type="button" class="order-mode-btn" data-order="PDF_ORDER" id="order-btn-pdf" title="PDF ဖိုင်အတွင်းရှိ မူလ အစီအစဉ်အတိုင်း (Original PDF Order)">
+          <span class="order-btn-icon">📄</span>
+          <span class="order-btn-text">မူလ PDF စဉ်နည်း</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Flashcard Workspace: Shows Upload Prompt initially, and 3D Card when PDF is imported -->
+    <main class="flashcard-workspace-container" id="flashcard-workspace">
+      
+      <!-- Upload Placeholder (Shown before any PDF is imported) -->
+      <div class="upload-placeholder" id="upload-placeholder">
+        <svg class="upload-icon-large" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="12" y1="18" x2="12" y2="12"></line>
+          <polyline points="9 15 12 12 15 15"></polyline>
+        </svg>
+
+        <div>
+          <h2 class="upload-placeholder-title">ကန်ဂျီ PDF ဖိုင်ကို ထည့်သွင်းပါ</h2>
+          <p class="upload-placeholder-sub">
+            "Kanji - Myanmar Meaning" ပုံစံဖြင့် ရေးသားထားသော PDF ဖိုင်ကို ထည့်သွင်းပြီး တိကျမှန်ကန်သော မြန်မာယူနီကုဒ်ဖြင့် လေ့လာနိုင်ပါသည်။
+          </p>
+        </div>
+
+        <div class="sample-btn-row">
+          <label for="pdf-import-input" class="btn btn-primary" style="padding: 0.75rem 1.4rem; font-size: 0.9rem;">
+            <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>PDF ဖိုင် ရွေးချယ်ရန် (Choose PDF)</span>
+          </label>
+
+          <button type="button" id="btn-load-sample" class="btn btn-outline" style="padding: 0.75rem 1.25rem; font-size: 0.9rem;">
+            <span>နမူနာ PDF စမ်းသပ်ရန် (Load Sample PDF)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Centered 3D Flashcard Stage (Displays only imported PDF Kanji & Burmese Language) -->
+      <div class="flashcard-stage" id="card-stage" style="display: none;" title="ကတ်ပြားကို လှန်ရန် နှိပ်ပါ (Click to Flip)">
+        <div class="flashcard-inner" id="flashcard">
+          
+          <!-- Front: Japanese Kanji from Imported PDF -->
+          <div class="card-face card-front">
+            <div class="card-header-bar">
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                <span class="badge-tag" id="card-badge">ကတ် ၁</span>
+                <span class="badge-status badge-new" id="front-status-badge">အသစ် (New)</span>
+                <span class="card-source-badge" id="card-pdf-ref" title="PDF ဖိုင်အတွင်း မူလအမှတ်စဉ်">📄 PDF #1</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button type="button" class="btn-speak" id="btn-speak-front" title="အသံထွက် နားဆင်ရန် (Pronounce)">🔊</button>
+                <span class="stroke-tag" id="card-stroke-info">Japanese Kanji</span>
+              </div>
+            </div>
+
+            <div class="card-front-center">
+              <div class="kanji-hero" id="card-kanji"></div>
+            </div>
+
+            <div class="card-footer-prompt">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span>အဓိပ္ပာယ်နှင့် လေ့ကျင့်ခန်းကြည့်ရန် လှန်ပါ (Click to Flip)</span>
+            </div>
+          </div>
+
+          <!-- Back: Correct Burmese Language Meaning from Imported PDF -->
+          <div class="card-face card-back">
+            <div class="card-header-bar">
+              <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                <span class="badge-tag">မြန်မာအဓိပ္ပာယ်</span>
+                <span class="badge-status badge-new" id="back-status-badge">အသစ်</span>
+                <span class="card-source-badge" id="card-pdf-ref-back" title="PDF ဖိုင်အတွင်း မူလအမှတ်စဉ်">📄 PDF #1</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button type="button" class="btn-speak" id="btn-speak-back" title="အသံထွက် နားဆင်ရန် (Pronounce)">🔊</button>
+                <span class="stroke-tag" id="card-kanji-mini" style="font-family: var(--font-japanese); font-weight: 700; font-size: 1.15rem; color: #ff6b6b;"></span>
+              </div>
+            </div>
+
+            <div class="card-back-content" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; text-align: center; margin: auto 0;">
+              <!-- Reading / Hiragana is shown strictly on the back face if present -->
+              <div class="card-reading-badge" id="card-reading" style="display: none;"></div>
+
+              <div class="myanmar-primary-meaning" style="border-bottom: none; padding-bottom: 0.25rem;">
+                <h2 class="myanmar-meaning-title" id="card-myanmar-title" style="font-size: 1.75rem; margin-bottom: 0.35rem;"></h2>
+                <p class="myanmar-desc-text" id="card-myanmar-desc" style="font-size: 0.92rem;"></p>
+              </div>
+
+              <!-- Revisions to Remember Memory Aid (Displayed for Unlearned Kanji / Revision Practice) -->
+              <div class="revision-box" id="card-revision-box" style="display: none;">
+                <div class="revision-box-header">
+                  <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span>📌 မှတ်မိစေရန် ပြန်လည်လေ့ကျင့်နည်း (Revisions to Remember)</span>
+                  </div>
+                  <span class="revision-counter-tag" id="card-revision-count">ပြန်ကျက်: ၀ ကြိမ်</span>
+                </div>
+
+                <div class="revision-mnemonic-group">
+                  <span class="revision-label">💡 မှတ်မိစေမည့် နည်းလမ်း (Memory Aid):</span>
+                  <p class="revision-mnemonic-text" id="card-revision-mnemonic"></p>
+                </div>
+
+                <div class="revision-mnemonic-group" id="card-revision-vocab-group" style="display: none;">
+                  <span class="revision-label">📖 စာလုံးတွဲများ (Vocabulary):</span>
+                  <div class="revision-vocab-list" id="card-revision-vocab-list"></div>
+                </div>
+
+                <div class="revision-practice-prompt">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>အဓိပ္ပာယ်နှင့် အသံထွက်ကို အသံထွက်ဆို၍ လက်ဖြင့် ၃ ကြိမ် ရေးဆွဲလေ့ကျင့်ပါ</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer-prompt">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+              <span>ရှေ့ဘက်သို့ ပြန်လှန်ရန် နှိပ်ပါ (Click to Flip Back)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Study Action Bar: To Review & Memorized Actions -->
+    <div class="study-action-bar" id="study-action-bar">
+      <button type="button" id="btn-to-review" class="btn-study-unlearn" title="ပြန်ကျက်ရန် (To Review) - Shortcut: 2 or U">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        <span>To Review (ပြန်ကျက်ရန်)</span>
+      </button>
+
+      <button type="button" id="btn-memorized" class="btn-study-learn" title="မှတ်မိပြီ (Memorized) - Shortcut: 1 or L">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Memorized (မှတ်မိပြီ)</span>
+      </button>
+    </div>
+
+    <!-- Bottom Controls: Previous, Flip, Next -->
+    <nav class="bottom-controls" aria-label="Card Navigation">
+      <button id="btn-prev" class="btn btn-outline btn-nav" title="Previous Card (Left Arrow)">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Previous</span>
+      </button>
+
+      <span class="card-indicator" id="card-counter">ကတ် ၁ / ၁၀</span>
+
+      <button id="btn-flip" class="btn btn-outline btn-nav" title="Flip Card (Spacebar)">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+        <span>Flip</span>
+      </button>
+
+      <button id="btn-next" class="btn btn-primary btn-nav" title="Next Card (Right Arrow)">
+        <span>Next</span>
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Revisions to Remember Modal Dialog -->
+    <dialog id="revisions-modal" class="revisions-dialog">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.35rem;">📌</span>
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fbbf24;">ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီများ</h3>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: var(--lh-myanmar);">
+              Revisions to Remember (<span id="modal-revisions-count">၀</span> ခု)
+            </p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-modal" class="btn-close-modal" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <div id="modal-revisions-list" class="modal-revisions-list">
+        <!-- Dynamically rendered list of unlearned Kanji cards -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-export-revisions-pdf" class="btn btn-outline" style="border-color: #f59e0b; color: #fbbf24;">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export Revisions PDF</span>
+        </button>
+
+        <button type="button" id="btn-study-revisions-now" class="btn btn-primary" style="background: #f59e0b; color: #0f172a; font-weight: 700;">
+          <span>ဤကန်ဂျီများကိုသာ လေ့ကျင့်မည် (Study Revisions)</span>
+        </button>
+      </div>
+    </dialog>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  </div>
+
+  <!-- PDF.js CDN (Mozilla) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- jsPDF CDN (v2.5.1) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- html2canvas CDN (v1.4.1) for accurate Myanmar Unicode OpenType ligatures & shaping -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Supabase JS Client CDN (v2) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Flashcard App & PDF Import/Export Logic -->
+  <script>
+    // ========================================================================
+    // Supabase Client Initialization
+    // ========================================================================
+    const SUPABASE_URL = 'https://zsglgypwwramcmpydrpk.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_0eSo4SWdX9MV7EETjN_NFg_IGpLw4yH';
+    let supabaseClient = null;
+
+    if (typeof supabase !== 'undefined') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+      console.log('[Supabase] Initialized client successfully with URL:', SUPABASE_URL);
+    } else {
+      console.warn('[Supabase] SDK not loaded from CDN.');
+    }
+
+    // Configure PDF.js Worker
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    // ========================================================================
+    // 1. Data Models & Public User Session Engine
+    // ========================================================================
+    const PROGRESS_STORAGE_KEY = 'kanji_flashcard_progress_v2';
+    const DECK_STORAGE_KEY = 'kanji_flashcard_user_deck_v2';
+    const USER_ID_STORAGE_KEY = 'kanji_public_user_id_v2';
+
+    // Generates or retrieves a persistent, isolated ID for each public user/browser
+    function getOrCreatePublicUserId() {
+      let uid = localStorage.getItem(USER_ID_STORAGE_KEY);
+      if (!uid) {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          uid = 'usr_' + crypto.randomUUID();
+        } else {
+          uid = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 11);
+        }
+        localStorage.setItem(USER_ID_STORAGE_KEY, uid);
+        console.log('[Public User Session] Assigned new client ID:', uid);
+      } else {
+        console.log('[Public User Session] Resumed existing client ID:', uid);
+      }
+      return uid;
+    }
+
+    const currentUserId = getOrCreatePublicUserId();
+
+    // Myanmar Numerals Helper
+    const myanmarDigits = ['၀', '၁', '၂', '၃', '၄', '၅', '၆', '၇', '၈', '၉'];
+    const toMyanmarNum = num => String(num).replace(/\d/g, d => myanmarDigits[d]);
+
+    // ========================================================================
+    // Comprehensive Japanese Kanji -> Hiragana Reading Dictionary
+    // Ensures cards ALWAYS display authentic Hiragana readings on the back face
+    // ========================================================================
+    const KANJI_HIRAGANA_MAP = {
+      // 1. Deck Vocabulary & Compounds (including okurigana variants)
+      "早起": "はやおき",
+      "早起き": "はやおき",
+      "寝": "ねる",
+      "寝る": "ねる",
+      "寝坊": "ねぼう",
+      "昼寝": "ひるね",
+      "寝室": "しんしつ",
+      "浴": "あびる",
+      "浴びる": "あびる",
+      "月末": "げつまつ",
+      "年末": "ねんまつ",
+      "末": "すえ (まつ)",
+      "結末": "けつまつ",
+      "昨日": "きのう (さくじつ)",
+      "昨年": "さくねん",
+      "一昨日": "おととい",
+      "昨夜": "ゆうべ (さくや)",
+      "翌日": "よくじつ",
+      "翌年": "よくねん",
+      "翌朝": "よくあさ",
+      "翌週": "よくしゅう",
+      "予定": "よてい",
+      "予約": "よやく",
+      "予習": "よしゅう",
+      "天気予報": "てんきよほう",
+      "予測": "よそく",
+      "定食": "ていしょく",
+      "定休日": "ていきゅうび",
+      "決定": "けってい",
+      "定員": "ていいん",
+      "定価": "ていか",
+      "用事": "ようじ",
+      "用意": "ようい",
+      "利用": "りよう",
+      "使用": "しよう",
+      "子供用": "こどもよう",
+      "仕事": "しごと",
+      "大事": "だいじ",
+      "事故": "じこ",
+      "食事": "しょくじ",
+      "事実": "じじつ",
+      "起": "おきる",
+      "起きる": "おきる",
+      "銭湯": "せんとう",
+      "熱湯": "ねっとう",
+      "洗": "あらう",
+      "洗う": "あらう",
+      "洗面所": "せんめんじょ",
+      "手洗": "てあらい",
+      "手洗い": "てあらい",
+      "洗剤": "せんざい",
+      "水洗": "すいせん",
+      "洗濯": "せんたく",
+      "洗濯機": "せんたくき",
+      "干": "ほす",
+      "干す": "ほす",
+      "干物": "ひもの",
+      "若干": "じゃっかん",
+      "梅干": "うめぼし",
+      "梅干し": "うめぼし",
+      "生活": "せいかつ",
+      "活動": "かつどう",
+      "活用": "かつよう",
+      "活気": "かっき",
+      "生活費": "せいかつひ",
+      "拾": "ひろう",
+      "拾う": "ひろう",
+      "拾得物": "しゅうとくぶつ",
+      "捨": "すてる",
+      "捨てる": "すてる",
+      "使": "つかう",
+      "使う": "つかう",
+      "使い捨て": "つかいすて",
+      "四捨五入": "ししゃごにゅう",
+      "燃": "もえる / もやす",
+      "燃える": "もえる",
+      "燃やす": "もやす",
+      "燃料": "ねんりょう",
+      "袋": "ふくろ",
+      "手袋": "てぶくろ",
+      "紙袋": "かみぶくろ",
+      "曜日": "ようび",
+      "何曜日": "なんようび",
+      "月曜火曜": "げつようかよう",
+      "週末": "しゅうまつ",
+
+      // 2. Foundational Kanji & Everyday Words (Kunyomi / Hiragana)
+      "日": "ひ / にち",
+      "月": "つき / げつ",
+      "火": "ひ / か",
+      "水": "みず / すい",
+      "木": "き / もく",
+      "金": "かね / きん",
+      "土": "つち / ど",
+      "山": "やま / さん",
+      "川": "かわ / せん",
+      "人": "ひと / じん",
+      "本": "ほん / もと",
+      "学": "まなぶ / がく",
+      "時": "とき / じ",
+      "分": "わける / ふん / ぶん",
+      "半": "はん",
+      "年": "とし / ねん",
+      "前": "まえ / ぜん",
+      "後": "あと / ご / うしろ",
+      "午": "ご",
+      "今": "いま / こん",
+      "先": "さき / せん",
+      "生": "いきる / せい",
+      "校": "こう",
+      "友": "とも / ゆう",
+      "達": "たち / たつ",
+      "車": "くるま / しゃ",
+      "駅": "えき",
+      "道": "みち / どう",
+      "花": "はな / か",
+      "魚": "さかな / ぎょ",
+      "肉": "にく",
+      "茶": "ちゃ",
+      "酒": "さけ / しゅ",
+      "雨": "あめ / う",
+      "天": "てん / あめ",
+      "気": "き",
+      "電": "でん",
+      "話": "はなす / わ",
+      "語": "かたる / ご",
+      "読": "よむ / どく",
+      "書": "かく / しょ",
+      "聞": "きく / ぶん",
+      "見": "みる / けん",
+      "行": "いく / こう",
+      "来": "くる / らい",
+      "帰": "かえる / き",
+      "買": "かう / ばい",
+      "売": "うる / ばい",
+      "食": "たべる / しょく",
+      "飲": "のむ / いん",
+      "休": "やすむ / きゅう",
+      "立": "たつ / りつ",
+      "言": "いう / げん",
+      "思": "お思う / し",
+      "会": "あう / かい",
+      "社": "しゃ / やしろ",
+      "店": "みせ / てん",
+      "新": "あたらしい / しん",
+      "古": "ふるい / こ",
+      "長": "ながい / ちょう",
+      "短": "みじかい / たん",
+      "高": "たかい / こう",
+      "安": "やすい / あん",
+      "多": "おおい / た",
+      "少": "すくない / すこし",
+      "大": "おおきい / だい",
+      "小": "ちいさい / しょう",
+      "中": "なか / ちゅう",
+      "上": "うえ / じょう",
+      "下": "した / か",
+      "左": "ひだり / さ",
+      "右": "みぎ / う",
+      "外": "そと / がい",
+      "内": "うち / ない",
+      "男": "おとこ / だん",
+      "女": "おんな / じょ",
+      "子": "こ / し",
+      "父": "ちち / とう",
+      "母": "はは / かあ",
+      "兄": "あに / きょう",
+      "弟": "おとうと / だい",
+      "姉": "あね / し",
+      "妹": "いもうと / まい",
+      "私": "わたし / し",
+      "国": "くに / こく",
+      "何": "なに / なん",
+      "白": "しろ / はく",
+      "黒": "くろ / こく",
+      "赤": "あか / せき",
+      "青": "あお / せい",
+      "春": "はる / しゅん",
+      "夏": "なつ / か",
+      "秋": "あき / しゅう",
+      "冬": "ふゆ / とう",
+      "朝": "あさ / ちょう",
+      "昼": "ひる / ちゅう",
+      "夕": "ゆう",
+      "夜": "よる / や",
+      "北": "きた / ほく",
+      "南": "みなみ / なん",
+      "東": "ひがし / とう",
+      "西": "にし / せい",
+      "門": "もん / かど",
+      "間": "あいだ / かん",
+      "歩": "あるく / ほ",
+      "走": "はしる / そう",
+      "開": "あける / かい",
+      "閉": "しめる / へい",
+      "持": "もつ / じ",
+      "待": "まつ / たい",
+      "知": "しる / ち",
+      "作": "つくる / さく",
+      "教": "おしえる / きょう",
+      "習": "ならう / しゅう",
+      "勉": "べん",
+      "強": "つよい / きょう",
+      "漢": "かん",
+      "字": "じ",
+      "文": "ぶん / もん",
+      "英": "えい",
+      "質": "しつ",
+      "問": "とう / もん",
+      "題": "だい",
+      "答": "こたえる / とう",
+      "宿": "やど / しゅく",
+      "試": "ためす / し",
+      "験": "けん",
+      "病": "やまい / びょう",
+      "院": "いん",
+      "医": "い",
+      "者": "もの / しゃ",
+      "薬": "くすり / やく",
+      "体": "からだ / たい",
+      "頭": "あたま / とう",
+      "顔": "かお / がん",
+      "目": "め / もく",
+      "耳": "みみ / じ",
+      "口": "くち / こう",
+      "手": "て / しゅ",
+      "足": "あし / そく",
+      "心": "こころ / しん",
+      "力": "ちから / りょく",
+      "犬": "いぬ / けん",
+      "猫": "ねこ",
+      "鳥": "とり / ちょう",
+      "牛": "うし / ぎゅう",
+      "馬": "うま / ば",
+      "森": "もり / しん",
+      "林": "はやし / りん",
+      "空": "そら / くう",
+      "海": "うみ / かい",
+      "風": "かぜ / ふう",
+      "雪": "ゆき / せつ",
+      "音": "おと / おん",
+      "楽": "たのしい / がく / らく",
+      "歌": "うた / か",
+      "画": "が / かく",
+      "映": "うつる / えい",
+      "写": "うつす / しゃ",
+      "真": "ま / しん",
+      "旅": "たび / りょ",
+      "世": "よ / せ",
+      "界": "かい",
+      "物": "もの / ぶつ",
+      "事": "こと / じ",
+      "方": "かた / ほう",
+      "場": "ば / じょう",
+      "所": "ところ / しょ",
+      "野": "の / や",
+      "屋": "や / おく",
+      "室": "むろ / しつ",
+      "家": "いえ / か",
+      "族": "ぞく",
+      "親": "おや / しん",
+      "切": "きる / せつ",
+      "急": "いそぐ / きゅう",
+      "便": "べん / びん",
+      "利": "り",
+      "不": "ふ",
+      "元": "もと / げん",
+      "有": "ある / ゆう",
+      "名": "な / めい",
+      "重": "おもい / じゅう",
+      "軽": "かるい / けい",
+      "広": "ひろい / こう",
+      "早": "はやい / そう",
+      "速": "はやい / そく",
+      "遅": "おそい / ち",
+      "明": "あかるい / めい",
+      "暗": "くらい / あん",
+      "暖": "あたたかい / だん",
+      "冷": "つめたい / れい",
+      "温": "あたたかい / おん",
+      "涼": "すずしい / りょう",
+      "正": "ただしい / せい",
+      "同": "おなじ / どう",
+      "違": "ちがう / い",
+      "変": "かわる / へん",
+      "好": "すき / こう",
+      "嫌": "きらい / けん",
+      "忙": "いそがしい / ぼう",
+      "暇": "ひま / か",
+      "静": "しずか / せい",
+      "別": "わかれる / べつ",
+      "特": "とく",
+      "公": "こう",
+      "園": "えん",
+      "市": "し",
+      "町": "まち / ちょう",
+      "村": "むら / そん",
+      "県": "けん",
+      "京": "きょう",
+      "都": "みやこ / と",
+      "府": "ふ",
+      "島": "しま / とう",
+      "港": "みなと / こう",
+      "橋": "はし / きょう",
+      "通": "とおる / つう",
+      "交": "まじわる / こう",
+      "差": "さ",
+      "点": "てん",
+      "信": "しん",
+      "号": "ごう",
+      "線": "せん",
+      "乗": "のる / じょう",
+      "降": "おりる / こう",
+      "着": "きる / つく / ちゃく",
+      "発": "はつ",
+      "送": "おくる / そう",
+      "届": "とどく / とどける",
+      "配": "くばる / はい",
+      "運": "はこぶ / うん",
+      "動": "うごく / どう",
+      "止": "とまる / し",
+      "泳": "およぐ / えい",
+      "濯": "たく",
+      "湯": "ゆ / とう",
+      "銭": "ぜに / せん",
+      "熱": "あつい / ねつ",
+      "剤": "ざい",
+      "料": "りょう",
+      "理": "り",
+      "科": "か",
+      "意": "い",
+      "味": "あじ / み",
+      "席": "せき",
+      "度": "たび / ど",
+      "回": "まわる / かい",
+      "番": "ばん",
+      "組": "くみ / そ",
+      "級": "きゅう",
+      "階": "かい",
+      "段": "だん",
+      "側": "がわ / そく",
+      "向": "むく / こう",
+      "角": "かど / かく",
+      "曲": "まがる / きょく",
+      "直": "なおす / ちょく",
+      "折": "おる / せつ",
+      "払": "はらう / ふつ",
+      "受": "うける / じゅ",
+      "付": "つく / ふ",
+      "渡": "わたる / と",
+      "返": "かえす / へん",
+      "貸": "かす / たい",
+      "借": "かりる / しゃく",
+      "置": "おく / ち",
+      "残": "のこる / ざん",
+      "忘": "わすれる / ぼう",
+      "覚": "おぼえる / かく",
+      "考": "かんがえる / こう",
+      "調": "しらべる / ちょう",
+      "集": "あつまる / しゅう",
+      "進": "すすむ / しん",
+      "退": "しりぞく / たい",
+      "引": "ひく / いん",
+      "押": "おす / おう",
+      "始": "はじまる / し",
+      "終": "おわる / しゅう",
+      "続": "つづく / ぞく",
+      "探": "さがす / たん",
+      "見物": "けんぶつ",
+      "見学": "けんがく",
+      "意見": "いけん",
+      "注意": "ちゅうい",
+      "注文": "ちゅうもん",
+      "意味": "いみ",
+      "趣味": "しゅみ",
+      "興味": "きょうみ",
+      "親切": "しんせつ",
+      "大切": "たいせつ",
+      "便利": "べんり",
+      "不便": "ふべん",
+      "有名": "ゆうめい",
+      "元気": "げんき",
+      "病気": "びょうき",
+      "天気": "てんき",
+      "電気": "でんき",
+      "電車": "でんしゃ",
+      "自転車": "じてんしゃ",
+      "自動車": "じどうしゃ",
+      "自分": "じぶん",
+      "自由": "じゆう",
+      "理由": "りゆう",
+      "教室": "きょうしつ",
+      "会議室": "かいぎしつ",
+      "研究室": "けんきゅうしつ",
+      "食堂": "しょくどう",
+      "図書館": "としょかん",
+      "映画館": "えいがかん",
+      "大使館": "たいしかん",
+      "旅館": "りょかん",
+      "銀行": "ぎんこう",
+      "郵便局": "ゆうびんきょく",
+      "病院": "びょういん",
+      "大学": "だいがく",
+      "高校": "こうこう",
+      "中学校": "ちゅうがっこう",
+      "小学校": "しょうがっこう",
+      "学生": "がくせい",
+      "先生": "せんせい",
+      "留学生": "りゅうがくせい",
+      "家族": "かぞく",
+      "両親": "りょうしん",
+      "兄弟": "きょうだい",
+      "姉妹": "しまい",
+      "子供": "こども",
+      "大人": "おとな",
+      "外国人": "がいこくじん",
+      "日本人": "にほんじん",
+      "旅行": "りょこう",
+      "散歩": "さんぽ",
+      "運動": "うんどう",
+      "水泳": "すいえい",
+      "買い物": "かいもの",
+      "料理": "りょうり",
+      "朝食": "ちょうしょく",
+      "昼食": "ちゅうしょく",
+      "夕食": "ゆうしょく",
+      "宿題": "しゅくだい",
+      "質問": "しつもん",
+      "問題": "もんだい",
+      "試験": "しけん",
+      "教科書": "きょうかしょ",
+      "辞書": "じしょ",
+      "手紙": "てがみ",
+      "切手": "きって",
+      "切符": "きっぷ",
+      "写真": "しゃしん",
+      "時計": "とけい",
+      "眼鏡": "めがね",
+      "洋服": "ようふく",
+      "靴下": "くつした",
+      "財布": "さいふ",
+      "荷物": "にもつ",
+      "日本": "にほん",
+      "毎日": "まいにち",
+      "日曜日": "にちようび",
+      "月曜日": "げつようび",
+      "火曜日": "かようび",
+      "水曜日": "すいようび",
+      "木曜日": "もくようび",
+      "金曜日": "きんようび",
+      "土曜日": "どようび"
+    };
+
+    /**
+     * Automatic Hiragana Reading Resolver for any Japanese Kanji word
+     * @param {string} text - Kanji or word string
+     * @param {string} [myanmarHint] - Optional Burmese meaning
+     * @returns {string} Hiragana reading
+     */
+    function getHiraganaForKanji(text, myanmarHint = '') {
+      if (!text || typeof text !== 'string') return '';
+      const clean = text.trim();
+      if (!clean) return '';
+
+      // Direct dictionary match
+      if (KANJI_HIRAGANA_MAP[clean]) {
+        return KANJI_HIRAGANA_MAP[clean];
+      }
+
+      // Check without common trailing okurigana or clean
+      const kanjiOnly = (clean.match(/[\u4e00-\u9faf\u3400-\u4dbf]/g) || []).join('');
+      if (kanjiOnly && KANJI_HIRAGANA_MAP[kanjiOnly]) {
+        return KANJI_HIRAGANA_MAP[kanjiOnly];
+      }
+
+      // If text is already entirely Hiragana / Katakana / punctuation, return it directly
+      if (/^[\u3040-\u30ff\s・〜~～\-ー]+$/.test(clean)) {
+        return clean;
+      }
+
+      // Character-by-character resolution for multi-kanji compounds
+      const glyphs = [...clean];
+      const parts = glyphs.map(char => KANJI_HIRAGANA_MAP[char] || char);
+      const joined = parts.join('・');
+      if (joined && joined !== clean) {
+        return joined;
+      }
+
+      return '';
+    }
+
+    // Authentic Foundational Kanji Deck with authentic Burmese Unicode & Mnemonics
+    const DEFAULT_KANJI_DECK = [
+      {
+        kanji: "日",
+        reading: "ニチ, ジツ / ひ, -び, -か",
+        myanmar: "နေ၊ နေ့၊ ဂျပန်နိုင်ငံ",
+        mnemonic: "ပြတင်းပေါက်မှတစ်ဆင့် ထွက်ပေါ်လာသော နေမင်းကြီး၏ ပုံသဏ္ဌာန်မှ ဆင်းသက်လာပါသည်။",
+        vocab: ["日本 (ဂျပန်)", "毎日 (နေ့တိုင်း)", "日曜日 (တနင်္ဂနွေ)"]
+      },
+      {
+        kanji: "月",
+        reading: "ゲツ, ガツ / つき",
+        myanmar: "လ၊ လမင်း၊ တနင်္လာနေ့",
+        mnemonic: "ညကောင်းကင်ယံရှိ လခြမ်းကွေးနှင့် တိမ်တိုက်များ၏ ပုံသဏ္ဌာန်မှ ဖြစ်ပေါ်လာပါသည်။",
+        vocab: ["今月 (ဒီလ)", "毎月 (လတိုင်း)", "月曜日 (တနင်္လာ)"]
+      },
+      {
+        kanji: "火",
+        reading: "カ / ひ, -び, ほ-",
+        myanmar: "မီး၊ အင်္ဂါနေ့",
+        mnemonic: "မီးတောက်မီးလျှံများ အထက်သို့ တက်ကြွစွာ တောက်လောင်နေသောပုံ ဖြစ်ပါသည်။",
+        vocab: ["火曜日 (အင်္ဂါ)", "火山 (မီးတောင်)", "花火 (မီးရှူးမီးပန်း)"]
+      },
+      {
+        kanji: "水",
+        reading: "スイ / みず",
+        myanmar: "ရေ၊ ဗုဒ္ဓဟူးနေ့",
+        mnemonic: "အလယ်မှ ရေစီးကြောင်းနှင့် ဘေးဘက်သို့ လွင့်စင်နေသော ရေစက်လက်များ ပုံစံဖြစ်ပါသည်။",
+        vocab: ["水曜日 (ဗုဒ္ဓဟူး)", "水道 (ရေပိုက်လိုင်း)", "水泳 (ရေကူးခြင်း)"]
+      },
+      {
+        kanji: "木",
+        reading: "モク, ボク / き, こ-",
+        myanmar: "သစ်ပင်၊ သစ်သား၊ ကြာသပတေးနေ့",
+        mnemonic: "ပင်စည်၊ အကိုင်းအခက်နှင့် မြေအောက်အမြစ်များ စုံလင်စွာပါသော သစ်ပင်ပုံသဏ္ဌာန် ဖြစ်ပါသည်။",
+        vocab: ["木曜日 (ကြာသပတေး)", "樹木 (သစ်ပင်ကြီး)", "木材 (သစ်သား)"]
+      },
+      {
+        kanji: "金",
+        reading: "キン, コン / かね, かな-",
+        myanmar: "ရွှေ၊ ပိုက်ဆံ၊ သောကြာနေ့",
+        mnemonic: "မြေကြီးအောက်တွင်းထဲတွင် စုပုံနေသော အဖိုးတန် ရွှေတုံးပုံစံ ဖြစ်ပါသည်။",
+        vocab: ["金曜日 (သောကြာ)", "お金 (ပိုက်ဆံ)", "料金 (အခကြေးငွေ)"]
+      },
+      {
+        kanji: "土",
+        reading: "ド, ト / つち",
+        myanmar: "မြေကြီး၊ စနေနေ့",
+        mnemonic: "မြေကြီးသားထက်တွင် အပင်ပေါက်ကလေး စတင်ထွက်ပေါ်လာသော အသွင်သဏ္ဌာန် ဖြစ်ပါသည်။",
+        vocab: ["土曜日 (စနေ)", "土地 (မြေနေရာ)", "お土産 (အမှတ်တရလက်ဆောင်)"]
+      },
+      {
+        kanji: "山",
+        reading: "サン, セン / やま",
+        myanmar: "တောင်၊ တောင်ကုန်း",
+        mnemonic: "မတ်စောက်မြင့်မားသော တောင်ထွတ် ၃ ခု ဆက်စပ်နေသည့် ပုံသဏ္ဌာန် ဖြစ်ပါသည်။",
+        vocab: ["富士山 (ဖူဂျီတောင်)", "登山 (တောင်တက်ခြင်း)", "火山 (မီးတောင်)"]
+      },
+      {
+        kanji: "川",
+        reading: "セン / かわ",
+        myanmar: "မြစ်၊ ချောင်း",
+        mnemonic: "ကမ်းနှစ်ဖက်ကြားမှ တသွင်သွင် စီးဆင်းနေသော မြစ်ရေစီးကြောင်း ၃ ခုပုံ ဖြစ်ပါသည်။",
+        vocab: ["小川 (ချောင်းငယ်)", "河川 (မြစ်ချောင်းများ)", "川岸 (မြစ်ကမ်း)"]
+      },
+      {
+        kanji: "人",
+        reading: "ジン, ニン / ひと",
+        myanmar: "လူ၊ ပုဂ္ဂိုလ်",
+        mnemonic: "ခြေနှစ်ဖက်ဖြင့် ကြံ့ကြံ့ခိုင်ခိုင် မတ်တပ်ရပ်နေသော လူတစ်ဦး၏ ပုံစံဖြစ်ပါသည်။",
+        vocab: ["日本人 (ဂျပန်လူမျိုး)", "外国人 (နိုင်ငံခြားသား)", "一人 (တစ်ယောက်)"]
+      },
+      {
+        kanji: "本",
+        reading: "ホン / もと",
+        myanmar: "စာအုပ်၊ မူလ၊ အရင်းအမြစ်",
+        mnemonic: "သစ်ပင် (木) ၏ အရင်းအမြစ်ကို မျဉ်းတားပြထားပြီး သစ်သားမှ စက္ကူနှင့် စာအုပ် ဖြစ်လာပါသည်။",
+        vocab: ["本屋 (စာအုပ်ဆိုင်)", "日本 (ဂျပန်)", "基本 (အခြေခံ)"]
+      },
+      {
+        kanji: "学",
+        reading: "ガク / まな-ぶ",
+        myanmar: "ပညာသင်ကြားခြင်း၊ ကျောင်း",
+        mnemonic: "အမိုးအောက်တွင် ကလေးငယ်တစ်ဦး အသိပညာ ဗဟုသုတ သင်ယူနေသော ပုံသဏ္ဌာန် ဖြစ်ပါသည်။",
+        vocab: ["学校 (ကျောင်း)", "学生 (ကျောင်းသား)", "大学 (တက္ကသိုလ်)"]
+      }
+    ];
+
+    // ========================================================================
+    // 2. Application State Management
+    // ========================================================================
+    let masterDeck = [];                      // Active deck (sample or user imported PDF)
+    let activeDeck = [];                      // Filtered view (ALL, LEARNING, REVIEW, MEMORIZED)
+    let currentFilter = 'ALL';                // 'ALL' | 'LEARNING' | 'REVIEW' | 'MEMORIZED'
+    let currentCardIndex = 0;
+    let studyProgress = {};                   // { [kanji]: { status: 'learning'|'review'|'memorized', reviewCount: number, lastReviewed: timestamp } }
+
+    const ORDER_STORAGE_KEY = 'kanji_flashcard_order_mode_v2';
+    // Order Modes: 'SMART' (Memory Interleaved) | 'SHUFFLE' (Random) | 'REVIEW_FIRST' (Priority) | 'PDF_ORDER' (Original Sequence)
+    let currentOrderMode = localStorage.getItem(ORDER_STORAGE_KEY) || 'SMART';
+
+    // DOM Elements Cache
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const cardStage = document.getElementById('card-stage');
+    const flashcard = document.getElementById('flashcard');
+    const cardBadge = document.getElementById('card-badge');
+    const cardPdfRef = document.getElementById('card-pdf-ref');
+    const cardPdfRefBack = document.getElementById('card-pdf-ref-back');
+    const frontStatusBadge = document.getElementById('front-status-badge');
+    const backStatusBadge = document.getElementById('back-status-badge');
+    const cardKanji = document.getElementById('card-kanji');
+    const cardKanjiMini = document.getElementById('card-kanji-mini');
+    const cardMyanmarTitle = document.getElementById('card-myanmar-title');
+    const cardMyanmarDesc = document.getElementById('card-myanmar-desc');
+    const cardReadingEl = document.getElementById('card-reading');
+    const cardCounter = document.getElementById('card-counter');
+
+    // Custom Order Bar DOM Elements
+    const orderBar = document.getElementById('order-bar');
+    const activeOrderBadge = document.getElementById('active-order-badge');
+    const btnReshuffle = document.getElementById('btn-reshuffle');
+    const orderBtnSmart = document.getElementById('order-btn-smart');
+    const orderBtnShuffle = document.getElementById('order-btn-shuffle');
+    const orderBtnReviewFirst = document.getElementById('order-btn-review-first');
+    const orderBtnPdf = document.getElementById('order-btn-pdf');
+
+    // Revisions to Remember Box Elements
+    const cardRevisionBox = document.getElementById('card-revision-box');
+    const cardRevisionCount = document.getElementById('card-revision-count');
+    const cardRevisionMnemonic = document.getElementById('card-revision-mnemonic');
+    const cardRevisionVocabGroup = document.getElementById('card-revision-vocab-group');
+    const cardRevisionVocabList = document.getElementById('card-revision-vocab-list');
+
+    // Navigation & Study Buttons
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const btnFlip = document.getElementById('btn-flip');
+    const btnToReview = document.getElementById('btn-to-review') || document.getElementById('btn-unlearn');
+    const btnMemorized = document.getElementById('btn-memorized') || document.getElementById('btn-learn');
+    const btnLearn = btnMemorized;
+    const btnUnlearn = btnToReview;
+    const btnSpeakFront = document.getElementById('btn-speak-front');
+    const btnSpeakBack = document.getElementById('btn-speak-back');
+
+    // Filter Buttons & Counts
+    const filterBtnAll = document.getElementById('filter-btn-all');
+    const filterBtnLearning = document.getElementById('filter-btn-learning');
+    const filterBtnReview = document.getElementById('filter-btn-review') || document.getElementById('filter-btn-unlearned');
+    const filterBtnMemorized = document.getElementById('filter-btn-memorized') || document.getElementById('filter-btn-learned');
+    const filterBtnUnlearned = filterBtnReview;
+    const filterBtnLearned = filterBtnMemorized;
+
+    const countAll = document.getElementById('count-all');
+    const countLearning = document.getElementById('count-learning');
+    const countReview = document.getElementById('count-review') || document.getElementById('count-unlearned');
+    const countMemorized = document.getElementById('count-memorized') || document.getElementById('count-learned');
+    const countUnlearned = countReview;
+    const countLearned = countMemorized;
+    const revisionsCountBadge = document.getElementById('revisions-count-badge');
+
+    // Drawer / Modal Elements
+    const btnRevisionsDrawer = document.getElementById('btn-revisions-drawer');
+    const revisionsModal = document.getElementById('revisions-modal');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+    const modalRevisionsList = document.getElementById('modal-revisions-list');
+    const modalRevisionsCount = document.getElementById('modal-revisions-count');
+    const btnStudyRevisionsNow = document.getElementById('btn-study-revisions-now');
+    const btnExportRevisionsPdf = document.getElementById('btn-export-revisions-pdf');
+
+    // ========================================================================
+    // 3. LocalStorage Persistence Engine (Isolated Per Public User Session)
+    // ========================================================================
+    function saveUserDeck(deck) {
+      try {
+        if (Array.isArray(deck) && deck.length > 0) {
+          localStorage.setItem(DECK_STORAGE_KEY, JSON.stringify(deck));
+          console.log(`[LocalStorage] Saved private deck for user (${deck.length} cards).`);
+        } else {
+          localStorage.removeItem(DECK_STORAGE_KEY);
+        }
+        updateUserSessionBadge();
+      } catch (err) {
+        console.warn('[LocalStorage] Could not save user deck:', err);
+      }
+    }
+
+    function loadUserDeck() {
+      try {
+        const saved = localStorage.getItem(DECK_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log(`[LocalStorage] Loaded private user deck (${parsed.length} cards).`);
+            return parsed;
+          }
+        }
+      } catch (err) {
+        console.warn('[LocalStorage] Could not parse saved user deck:', err);
+      }
+      return null;
+    }
+
+    function clearUserDeck() {
+      try {
+        localStorage.removeItem(DECK_STORAGE_KEY);
+        updateUserSessionBadge();
+      } catch (err) {
+        console.warn('[LocalStorage] Could not clear user deck:', err);
+      }
+    }
+
+    function updateUserSessionBadge() {
+      const badgeText = document.getElementById('user-session-text');
+      if (badgeText) {
+        if (masterDeck && masterDeck.length > 0) {
+          badgeText.textContent = `👤 My Deck (${toMyanmarNum(masterDeck.length)})`;
+        } else {
+          badgeText.textContent = '👤 My Session';
+        }
+      }
+    }
+
+    function loadStudyProgress() {
+      try {
+        const saved = localStorage.getItem(PROGRESS_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          // Auto-prune: only retain progress entries for kanji present in the current masterDeck
+          studyProgress = {};
+          if (masterDeck && masterDeck.length > 0) {
+            const currentDeckKanji = new Set(masterDeck.map(c => c.kanji));
+            for (const [k, val] of Object.entries(parsed)) {
+              if (currentDeckKanji.has(k)) {
+                studyProgress[k] = val;
+              }
+            }
+          } else {
+            studyProgress = parsed;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not parse saved study progress', err);
+        studyProgress = {};
+      }
+    }
+
+    function clearAllProgress() {
+      studyProgress = {};
+      saveStudyProgress();
+    }
+
+    function saveStudyProgress() {
+      try {
+        localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(studyProgress));
+      } catch (err) {
+        console.warn('Could not save study progress', err);
+      }
+    }
+
+    function getCardStatus(cardOrKanji) {
+      if (typeof cardOrKanji === 'object' && cardOrKanji !== null) {
+        if (cardOrKanji.status) {
+          const s = cardOrKanji.status.toLowerCase().trim();
+          if (s === 'review' || s === 'unlearned') return 'review';
+          if (s === 'memorized' || s === 'learned') return 'memorized';
+          return 'learning';
+        }
+        const savedSt = studyProgress[cardOrKanji.kanji]?.status;
+        if (savedSt) {
+          const s = savedSt.toLowerCase().trim();
+          if (s === 'review' || s === 'unlearned') return 'review';
+          if (s === 'memorized' || s === 'learned') return 'memorized';
+          return 'learning';
+        }
+        return 'learning';
+      }
+      const found = masterDeck.find(c => c.kanji === cardOrKanji);
+      if (found && found.status) {
+        const s = found.status.toLowerCase().trim();
+        if (s === 'review' || s === 'unlearned') return 'review';
+        if (s === 'memorized' || s === 'learned') return 'memorized';
+        return 'learning';
+      }
+      const savedSt = studyProgress[cardOrKanji]?.status;
+      if (savedSt) {
+        const s = savedSt.toLowerCase().trim();
+        if (s === 'review' || s === 'unlearned') return 'review';
+        if (s === 'memorized' || s === 'learned') return 'memorized';
+        return 'learning';
+      }
+      return 'learning';
+    }
+
+    function getCardReviewCount(kanji) {
+      return studyProgress[kanji]?.reviewCount || 0;
+    }
+
+    // ========================================================================
+    // 4b. Custom Order & Cognitive Memory Retention Engine
+    // ========================================================================
+    /**
+     * Reorders a deck of cards based on cognitive memory science or user preference.
+     * Prevents serial-position bias & context cues from linear PDF sequence.
+     * @param {Array} cards - Input card array
+     * @param {'SMART'|'SHUFFLE'|'REVIEW_FIRST'|'PDF_ORDER'} mode - Desired order mode
+     * @returns {Array} Reordered card array
+     */
+    function applyDeckOrder(cards, mode = currentOrderMode) {
+      if (!Array.isArray(cards) || cards.length <= 1) return [...(cards || [])];
+
+      // Ensure every card has a stable original pdfOrder (1-based index from the PDF)
+      cards.forEach((c, i) => {
+        if (typeof c.pdfOrder !== 'number') {
+          c.pdfOrder = i + 1;
+        }
+      });
+
+      const copy = [...cards];
+
+      switch (mode) {
+        case 'PDF_ORDER': {
+          // Strictly original sequential order from PDF
+          return copy.sort((a, b) => (a.pdfOrder || 0) - (b.pdfOrder || 0));
+        }
+
+        case 'SHUFFLE': {
+          // Classic Fisher-Yates shuffle
+          for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+          }
+          return copy;
+        }
+
+        case 'REVIEW_FIRST': {
+          // Prioritize cards that need review, then learning, then memorized
+          return copy.sort((a, b) => {
+            const statusOrder = { 'review': 0, 'learning': 1, 'memorized': 2 };
+            const statusA = getCardStatus(a);
+            const statusB = getCardStatus(b);
+            const diff = (statusOrder[statusA] ?? 1) - (statusOrder[statusB] ?? 1);
+            if (diff !== 0) return diff;
+            const revA = getCardReviewCount(a.kanji);
+            const revB = getCardReviewCount(b.kanji);
+            if (revB !== revA) return revB - revA; // higher review count first
+            return (a.pdfOrder || 0) - (b.pdfOrder || 0);
+          });
+        }
+
+        case 'SMART':
+        default: {
+          // SMART MEMORY ORDER (Cognitive Interleaved Spacing)
+          // 1. Separates adjacent items from the same PDF page so memory doesn't rely on neighbor context
+          // 2. Weaves Review cards at spaced intervals for active recall reinforcement
+          // 3. Introduces New cards with optimal dispersion
+          // 4. Places Memorized cards towards end for retention spot-checks
+          const reviewItems = [];
+          const learningItems = [];
+          const memorizedItems = [];
+
+          copy.forEach(c => {
+            const st = getCardStatus(c);
+            if (st === 'review') reviewItems.push(c);
+            else if (st === 'memorized') memorizedItems.push(c);
+            else learningItems.push(c);
+          });
+
+          // Helper: Interleave an array using coprime stride dispersion to separate adjacent PDF items
+          function interleaveList(list) {
+            const n = list.length;
+            if (n <= 2) return [...list];
+
+            // Sort initially by pdfOrder to establish baseline sequence
+            const sorted = [...list].sort((a, b) => (a.pdfOrder || 0) - (b.pdfOrder || 0));
+
+            // Choose a stride coprime to n, close to golden ratio dispersion (n * 0.382)
+            const gcd = (a, b) => (!b ? a : gcd(b, a % b));
+            let stride = Math.max(2, Math.floor(n * 0.382));
+            while (stride < n && gcd(stride, n) !== 1) {
+              stride++;
+            }
+            if (stride >= n) stride = n > 3 ? 3 : 2;
+
+            const dispersed = new Array(n);
+            const visited = new Set();
+            let destIdx = 0;
+
+            for (let step = 0; step < n; step++) {
+              let candidate = (step * stride) % n;
+              while (visited.has(candidate)) {
+                candidate = (candidate + 1) % n;
+              }
+              visited.add(candidate);
+              dispersed[destIdx++] = sorted[candidate];
+            }
+
+            return dispersed;
+          }
+
+          const interleavedLearning = interleaveList(learningItems);
+          const interleavedReview = interleaveList(reviewItems);
+          const interleavedMemorized = interleaveList(memorizedItems);
+
+          // Weave review cards into learning cards at spaced intervals (1 review every 2-3 cards)
+          const result = [];
+          let revIdx = 0;
+          let learnIdx = 0;
+
+          // Always start with 1 review card if available to trigger recall early
+          if (interleavedReview.length > 0) {
+            result.push(interleavedReview[revIdx++]);
+          }
+
+          while (learnIdx < interleavedLearning.length || revIdx < interleavedReview.length) {
+            // Add up to 2-3 learning cards
+            for (let k = 0; k < 3 && learnIdx < interleavedLearning.length; k++) {
+              result.push(interleavedLearning[learnIdx++]);
+            }
+            // Add 1 review card
+            if (revIdx < interleavedReview.length) {
+              result.push(interleavedReview[revIdx++]);
+            }
+          }
+
+          // Append memorized cards at the end
+          interleavedMemorized.forEach(c => result.push(c));
+
+          return result;
+        }
+      }
+    }
+
+    function updateOrderBarUI() {
+      if (!orderBar) return;
+      if (!masterDeck || masterDeck.length === 0) {
+        orderBar.style.display = 'none';
+        return;
+      }
+      orderBar.style.display = 'flex';
+
+      const buttons = [
+        { el: orderBtnSmart, mode: 'SMART', text: '🧠 မှတ်ဉာဏ်တိုး (Smart)' },
+        { el: orderBtnShuffle, mode: 'SHUFFLE', text: '🔀 ကျပန်း (Shuffle)' },
+        { el: orderBtnReviewFirst, mode: 'REVIEW_FIRST', text: '⚠️ ပြန်ကျက် ဦးစားပေး' },
+        { el: orderBtnPdf, mode: 'PDF_ORDER', text: '📄 မူလ PDF စဉ်နည်း' }
+      ];
+
+      buttons.forEach(btn => {
+        if (!btn.el) return;
+        const isActive = btn.mode === currentOrderMode;
+        btn.el.classList.toggle('active', isActive);
+        if (isActive && activeOrderBadge) {
+          activeOrderBadge.textContent = btn.text;
+        }
+      });
+    }
+
+    function setOrderMode(newMode, notifyUser = true) {
+      currentOrderMode = newMode;
+      localStorage.setItem(ORDER_STORAGE_KEY, newMode);
+      updateOrderBarUI();
+
+      // Re-apply filter and custom ordering to activeDeck
+      setFilter(currentFilter);
+
+      if (notifyUser) {
+        if (newMode === 'SMART') {
+          showToast('🧠 မှတ်ဉာဏ်တိုး စဉ်နည်း (Interleaved Memory Order) သို့ ပြောင်းလိုက်ပါပြီ');
+        } else if (newMode === 'SHUFFLE') {
+          showToast('🔀 ကျပန်း စဉ်နည်း (Random Shuffle) သို့ ပြောင်းလိုက်ပါပြီ');
+        } else if (newMode === 'REVIEW_FIRST') {
+          showToast('⚠️ ပြန်ကျက်ရန် လိုအပ်သော ကတ်များကို ဦးစားပေး စီစဉ်လိုက်ပါပြီ');
+        } else if (newMode === 'PDF_ORDER') {
+          showToast('📄 မူလ PDF အစီအစဉ်အတိုင်း ပြောင်းလိုက်ပါပြီ');
+        }
+      }
+    }
+
+    function reshuffleCurrentDeck() {
+      if (!activeDeck || activeDeck.length <= 1) return;
+
+      let baseDeck = [];
+      if (currentFilter === 'LEARNING') {
+        baseDeck = masterDeck.filter(c => getCardStatus(c) === 'learning');
+      } else if (currentFilter === 'REVIEW' || currentFilter === 'UNLEARNED') {
+        baseDeck = masterDeck.filter(c => getCardStatus(c) === 'review');
+      } else if (currentFilter === 'MEMORIZED' || currentFilter === 'LEARNED') {
+        baseDeck = masterDeck.filter(c => getCardStatus(c) === 'memorized');
+      } else {
+        baseDeck = [...masterDeck];
+      }
+
+      // If in PDF_ORDER, switch to SMART when reshuffle is clicked
+      if (currentOrderMode === 'PDF_ORDER') {
+        currentOrderMode = 'SMART';
+        localStorage.setItem(ORDER_STORAGE_KEY, 'SMART');
+      }
+      updateOrderBarUI();
+
+      activeDeck = applyDeckOrder(baseDeck, currentOrderMode);
+      currentCardIndex = 0;
+      displayCard(0);
+      showToast('🔀 အစီအစဉ်အသစ်ဖြင့် ပြန်လည်မွှေနှောက်လိုက်ပါပြီ (Fresh Custom Order)');
+    }
+
+    if (orderBtnSmart) orderBtnSmart.addEventListener('click', () => setOrderMode('SMART'));
+    if (orderBtnShuffle) orderBtnShuffle.addEventListener('click', () => setOrderMode('SHUFFLE'));
+    if (orderBtnReviewFirst) orderBtnReviewFirst.addEventListener('click', () => setOrderMode('REVIEW_FIRST'));
+    if (orderBtnPdf) orderBtnPdf.addEventListener('click', () => setOrderMode('PDF_ORDER'));
+    if (btnReshuffle) btnReshuffle.addEventListener('click', reshuffleCurrentDeck);
+
+    // ========================================================================
+    // Supabase Data Source: fetchFlashcards()
+    // ========================================================================
+    /**
+     * Fetches flashcards from Supabase table 'flashcards' (columns: id, kanji, myanmar_meaning, status).
+     * Counts and displays the total number of cards for each status:
+     * 'learning' (New Cards), 'review' (ပြန်ကျက်ရန်), and 'memorized' (မှတ်မိပြီ).
+     */
+    async function fetchFlashcards() {
+      if (!supabaseClient) {
+        console.warn('[Supabase] Client not initialized. Using local deck.');
+        updateFilterCounts();
+        return;
+      }
+
+      console.log(`[Supabase] Fetching flashcards for user session (${currentUserId})...`);
+      try {
+        // Query scoped strictly to the current public user's session
+        const { data, error, status } = await supabaseClient
+          .from('flashcards')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .order('id', { ascending: true });
+
+        if (error) {
+          // If 'user_id' column doesn't exist yet in Supabase schema (PostgreSQL error PGRST204)
+          if (error.code === 'PGRST204' || (error.message && error.message.includes('user_id'))) {
+            console.warn('[Supabase Isolation Note]: "user_id" column not found in Supabase table. Using local-first storage to isolate user cards.');
+            updateFilterCounts();
+            return;
+          }
+
+          console.error('[Supabase Error in fetchFlashcards]:', error);
+          updateFilterCounts();
+          return;
+        }
+
+        console.log(`[Supabase Response]: Fetched ${data ? data.length : 0} records for user ${currentUserId}`);
+
+        if (data && data.length > 0) {
+          const mappedCards = data.map((item, idx) => {
+            const pureKanji = (item.kanji || '').trim();
+            const myanmarMeaning = (item.myanmar_meaning || item.myanmar || '').trim();
+            let itemStatus = (item.status || 'learning').toLowerCase().trim();
+            if (itemStatus === 'unlearned') itemStatus = 'review';
+            if (itemStatus === 'learned') itemStatus = 'memorized';
+
+            const hiraganaReading = item.reading || getHiraganaForKanji(pureKanji, myanmarMeaning);
+
+            return {
+              id: item.id,
+              kanji: pureKanji,
+              reading: hiraganaReading,
+              myanmar: myanmarMeaning,
+              status: itemStatus,
+              pdfOrder: typeof item.pdf_order === 'number' ? item.pdf_order : (idx + 1),
+              mnemonic: item.mnemonic || `「${pureKanji}」${hiraganaReading ? ` (${hiraganaReading})` : ''} - မြန်မာအဓိပ္ပာယ်မှာ 「${myanmarMeaning}」 ဖြစ်ပါသည်။`,
+              vocab: Array.isArray(item.vocab) ? item.vocab : []
+            };
+          }).filter(c => c.kanji && c.myanmar);
+
+          if (mappedCards.length > 0) {
+            masterDeck = mappedCards;
+            saveUserDeck(masterDeck);
+
+            // Sync studyProgress state
+            masterDeck.forEach(c => {
+              const prev = studyProgress[c.kanji] || { reviewCount: 0 };
+              studyProgress[c.kanji] = {
+                status: c.status,
+                reviewCount: prev.reviewCount || 0,
+                lastReviewed: prev.lastReviewed || Date.now()
+              };
+            });
+            saveStudyProgress();
+
+            if (orderBar) orderBar.style.display = 'flex';
+            updateOrderBarUI();
+            updateFilterCounts();
+            setFilter(currentFilter || 'ALL');
+            showToast(`☁️ Supabase မှ သင့်ကန်ဂျီ (${toMyanmarNum(mappedCards.length)}) ခု ရယူပြီးပါပြီ`);
+          }
+        } else {
+          console.log(`[Supabase]: No remote cards for user ${currentUserId}. Keeping local deck.`);
+          updateFilterCounts();
+        }
+      } catch (err) {
+        console.error('[Supabase Exception in fetchFlashcards]:', err);
+        updateFilterCounts();
+      }
+    }
+
+    // ========================================================================
+    // 4. Web Speech API (Native Japanese Pronunciation Engine)
+    // ========================================================================
+    function speakKanji(text) {
+      if (!('speechSynthesis' in window)) {
+        showToast('ဤဘရောက်ဇာတွင် အသံထွက်စနစ် မထောက်ပံ့ပါ');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const cleanText = text.replace(/<[^>]*>/g, '').trim();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    if (btnSpeakFront) {
+      btnSpeakFront.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = activeDeck[currentCardIndex];
+        if (card) speakKanji(card.kanji);
+      });
+    }
+
+    if (btnSpeakBack) {
+      btnSpeakBack.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const card = activeDeck[currentCardIndex];
+        if (card) {
+          const japaneseText = (card.kanji || '').trim();
+          const reading = (card.reading && card.reading.trim()) || getHiraganaForKanji(japaneseText, card.myanmar);
+          const toSpeak = reading ? `${japaneseText}。${reading}` : japaneseText;
+          speakKanji(toSpeak);
+        }
+      });
+    }
+
+    // ========================================================================
+    // 5. Toast Notifications
+    // ========================================================================
+    const toastContainer = document.getElementById('toast-container');
+    function showToast(message) {
+      if (!toastContainer) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<span>${message}</span>`;
+      toastContainer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 320);
+      }, 2600);
+    }
+
+    // ========================================================================
+    // 6. Filter & Deck Management Logic
+    // ========================================================================
+    function updateFilterCounts() {
+      let learning = 0;
+      let review = 0;
+      let memorized = 0;
+
+      masterDeck.forEach(c => {
+        const st = getCardStatus(c);
+        if (st === 'review') review++;
+        else if (st === 'memorized') memorized++;
+        else learning++;
+      });
+
+      if (countAll) countAll.textContent = toMyanmarNum(masterDeck.length);
+      if (countLearning) countLearning.textContent = toMyanmarNum(learning);
+      if (countReview) countReview.textContent = toMyanmarNum(review);
+      if (countMemorized) countMemorized.textContent = toMyanmarNum(memorized);
+      if (revisionsCountBadge) revisionsCountBadge.textContent = toMyanmarNum(review);
+      if (modalRevisionsCount) modalRevisionsCount.textContent = toMyanmarNum(review);
+    }
+
+    function setFilter(filterType) {
+      currentFilter = filterType;
+
+      // Update active styling on filter pills
+      [filterBtnAll, filterBtnLearning, filterBtnReview, filterBtnMemorized].forEach(btn => {
+        if (btn) btn.classList.remove('active');
+      });
+
+      if (filterType === 'ALL' && filterBtnAll) filterBtnAll.classList.add('active');
+      if (filterType === 'LEARNING' && filterBtnLearning) filterBtnLearning.classList.add('active');
+      if ((filterType === 'REVIEW' || filterType === 'UNLEARNED') && filterBtnReview) filterBtnReview.classList.add('active');
+      if ((filterType === 'MEMORIZED' || filterType === 'LEARNED') && filterBtnMemorized) filterBtnMemorized.classList.add('active');
+
+      // Filter active deck
+      let baseDeck = [];
+      if (filterType === 'LEARNING') {
+        baseDeck = masterDeck.filter(c => getCardStatus(c) === 'learning');
+      } else if (filterType === 'REVIEW' || filterType === 'UNLEARNED') {
+        baseDeck = masterDeck.filter(c => getCardStatus(c) === 'review');
+      } else if (filterType === 'MEMORIZED' || filterType === 'LEARNED') {
+        baseDeck = masterDeck.filter(c => getCardStatus(c) === 'memorized');
+      } else {
+        baseDeck = [...masterDeck];
+      }
+
+      // Apply Custom Order (Smart Memory Interleaved, Shuffle, Review Priority, or PDF Order)
+      activeDeck = applyDeckOrder(baseDeck, currentOrderMode);
+
+      currentCardIndex = 0;
+      displayCard(0);
+      updateOrderBarUI();
+    }
+
+    if (filterBtnAll) filterBtnAll.addEventListener('click', () => setFilter('ALL'));
+    if (filterBtnLearning) filterBtnLearning.addEventListener('click', () => setFilter('LEARNING'));
+    if (filterBtnReview) filterBtnReview.addEventListener('click', () => setFilter('REVIEW'));
+    if (filterBtnMemorized) filterBtnMemorized.addEventListener('click', () => setFilter('MEMORIZED'));
+
+    // ========================================================================
+    // 7. Display Flashcard Engine
+    // ========================================================================
+    function updateStatusBadges(status) {
+      const badges = [frontStatusBadge, backStatusBadge];
+      badges.forEach(b => {
+        if (!b) return;
+        b.className = 'badge-status';
+        if (status === 'memorized') {
+          b.classList.add('badge-learned');
+          b.textContent = '✓ မှတ်မိပြီ (Memorized)';
+        } else if (status === 'review') {
+          b.classList.add('badge-unlearned');
+          b.textContent = '⚠️ ပြန်ကျက်ရန် (To Review)';
+        } else {
+          b.classList.add('badge-new');
+          b.textContent = '📖 အသစ် (Learning)';
+        }
+      });
+    }
+
+    function displayCard(index) {
+      updateFilterCounts();
+
+      // Case 1: Active deck has zero cards for the selected filter
+      if (!activeDeck || activeDeck.length === 0) {
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        if (cardStage) {
+          cardStage.style.display = 'block';
+          if (currentFilter === 'REVIEW' || currentFilter === 'UNLEARNED') {
+            cardStage.innerHTML = `
+              <div class="empty-filter-state">
+                <div class="empty-filter-icon">🎉</div>
+                <h3 class="empty-filter-title">ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီ မရှိသေးပါ!</h3>
+                <p class="empty-filter-desc">
+                  လက်ရှိတွင် ပြန်ကျက်ရန် သတ်မှတ်ထားသော ကန်ဂျီ မရှိပါ။ အားလုံးကို အောင်မြင်စွာ မှတ်မိပြီးပါပြီ (သို့မဟုတ်) ကတ်တစ်ခုအား 'To Review (ပြန်ကျက်ရန်)' အဖြစ် သတ်မှတ်ကြည့်ပါ။
+                </p>
+                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem;" onclick="setFilter('ALL')">
+                  <span>ကတ်အားလုံး ပြန်ကြည့်ရန် (View All Cards)</span>
+                </button>
+              </div>
+            `;
+          } else if (currentFilter === 'MEMORIZED' || currentFilter === 'LEARNED') {
+            cardStage.innerHTML = `
+              <div class="empty-filter-state">
+                <div class="empty-filter-icon">📚</div>
+                <h3 class="empty-filter-title">မှတ်မိပြီးသော ကန်ဂျီ မရှိသေးပါ</h3>
+                <p class="empty-filter-desc">
+                  ကတ်ပြားများကို လေ့လာပြီး မှတ်မိပါက 'Memorized (မှတ်မိပြီ)' ခလုတ်ကို နှိပ်၍ သတ်မှတ်နိုင်ပါသည်။
+                </p>
+                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem;" onclick="setFilter('ALL')">
+                  <span>ကတ်အားလုံး ပြန်ကြည့်ရန် (View All Cards)</span>
+                </button>
+              </div>
+            `;
+          } else if (currentFilter === 'LEARNING') {
+            cardStage.innerHTML = `
+              <div class="empty-filter-state">
+                <div class="empty-filter-icon">✨</div>
+                <h3 class="empty-filter-title">မကျက်ရသေးသော ကတ်အသစ် မရှိတော့ပါ</h3>
+                <p class="empty-filter-desc">
+                  ကတ်အသစ်အားလုံးကို လေ့လာပြီး 'ပြန်ကျက်ရန်' သို့မဟုတ် 'မှတ်မိပြီ' အဖြစ် သတ်မှတ်ပြီးပါပြီ။
+                </p>
+                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem;" onclick="setFilter('ALL')">
+                  <span>ကတ်အားလုံး ပြန်ကြည့်ရန် (View All Cards)</span>
+                </button>
+              </div>
+            `;
+          } else {
+            // Master deck is truly empty
+            if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
+            cardStage.style.display = 'none';
+          }
+        }
+
+        if (cardCounter) cardCounter.textContent = '၀ / ၀';
+        if (btnPrev) btnPrev.disabled = true;
+        if (btnNext) btnNext.disabled = true;
+        if (btnFlip) btnFlip.disabled = true;
+        if (btnMemorized) btnMemorized.classList.remove('is-active');
+        if (btnToReview) btnToReview.classList.remove('is-active');
+        return;
+      }
+
+      // Restore card-stage HTML if it was replaced by empty state
+      if (!document.getElementById('flashcard')) {
+        location.reload();
+        return;
+      }
+
+      if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+      if (cardStage) cardStage.style.display = 'block';
+      if (btnFlip) btnFlip.disabled = false;
+
+      // Wrap around index
+      if (index < 0) {
+        currentCardIndex = activeDeck.length - 1;
+      } else if (index >= activeDeck.length) {
+        currentCardIndex = 0;
+      } else {
+        currentCardIndex = index;
+      }
+
+      const card = activeDeck[currentCardIndex];
+      const status = getCardStatus(card);
+      const reviewCount = getCardReviewCount(card.kanji);
+
+      // 1. Front Face Rendering
+      const displayJapanese = (card.kanji || '').trim();
+      cardKanji.textContent = displayJapanese;
+
+      // Auto-scale font size dynamically based on length
+      if (displayJapanese.length > 7) {
+        cardKanji.style.fontSize = 'clamp(2rem, 6vw, 3.2rem)';
+      } else if (displayJapanese.length > 4) {
+        cardKanji.style.fontSize = 'clamp(2.8rem, 8vw, 4.4rem)';
+      } else {
+        cardKanji.style.fontSize = 'clamp(4.5rem, 14vw, 7rem)';
+      }
+
+      if (cardBadge) {
+        cardBadge.textContent = `ကတ် ${toMyanmarNum(currentCardIndex + 1)}`;
+      }
+
+      // Update PDF Reference badge (original sequential position in the imported PDF)
+      const pdfNum = card.pdfOrder || (masterDeck.findIndex(c => c.kanji === card.kanji) + 1);
+      const pdfBadgeText = `📄 PDF #${toMyanmarNum(pdfNum)}`;
+      if (cardPdfRef) {
+        cardPdfRef.textContent = pdfBadgeText;
+        cardPdfRef.title = `PDF ဖိုင်အတွင်း မူလအမှတ်စဉ် (${toMyanmarNum(pdfNum)})`;
+      }
+      if (cardPdfRefBack) {
+        cardPdfRefBack.textContent = pdfBadgeText;
+        cardPdfRefBack.title = `PDF ဖိုင်အတွင်း မူလအမှတ်စဉ် (${toMyanmarNum(pdfNum)})`;
+      }
+
+      updateStatusBadges(status);
+
+      // 2. Back Face Rendering
+      cardMyanmarTitle.textContent = card.myanmar;
+      if (cardKanjiMini) cardKanjiMini.textContent = displayJapanese;
+
+      // Reading / Hiragana badge rendering
+      const hiraganaReading = (card.reading && card.reading.trim()) || getHiraganaForKanji(displayJapanese, card.myanmar);
+      if (cardReadingEl) {
+        if (hiraganaReading && hiraganaReading.trim()) {
+          cardReadingEl.innerHTML = `
+            <span class="reading-badge-label">ဖတ်နည်း (Hiragana):</span>
+            <span class="reading-badge-text">${hiraganaReading.trim()}</span>
+          `;
+          cardReadingEl.style.display = 'inline-flex';
+        } else {
+          cardReadingEl.style.display = 'none';
+        }
+      }
+
+      if (cardMyanmarDesc) {
+        const readingSuffix = hiraganaReading ? ` [${hiraganaReading.trim()}]` : '';
+        cardMyanmarDesc.textContent = `ဂျပန်စာ "${displayJapanese}"${readingSuffix} ၏ မြန်မာအဓိပ္ပာယ်မှာ "${card.myanmar}" ဖြစ်ပါသည်။`;
+      }
+
+      // 3. Revisions to Remember Memory Box (Show when review status, or has Mnemonic)
+      if (cardRevisionBox) {
+        const isReview = status === 'review';
+        const hasMnemonic = !!card.mnemonic;
+
+        if (isReview || currentFilter === 'REVIEW' || currentFilter === 'UNLEARNED' || hasMnemonic) {
+          cardRevisionBox.style.display = 'flex';
+          cardRevisionCount.textContent = `ပြန်ကျက်: ${toMyanmarNum(reviewCount)} ကြိမ်`;
+
+          const mnemonicText = card.mnemonic || `「${displayJapanese}」- မြန်မာအဓိပ္ပာယ်မှာ 「${card.myanmar}」 ဖြစ်ပါသည်။ အဓိပ္ပာယ်နှင့် အသံထွက်ကို မှတ်မိစေရန် အထူးဂရုပြု ပြန်လည်ကျက်မှတ်ပါ။`;
+          cardRevisionMnemonic.textContent = mnemonicText;
+
+          if (card.vocab && card.vocab.length > 0) {
+            cardRevisionVocabGroup.style.display = 'flex';
+            cardRevisionVocabList.innerHTML = card.vocab.map(v => `<span class="revision-vocab-tag">${v}</span>`).join('');
+          } else {
+            cardRevisionVocabGroup.style.display = 'none';
+          }
+        } else {
+          cardRevisionBox.style.display = 'none';
+        }
+      }
+
+      // 4. Update Study Action Buttons States
+      if (btnMemorized) btnMemorized.classList.toggle('is-active', status === 'memorized');
+      if (btnToReview) btnToReview.classList.toggle('is-active', status === 'review');
+
+      // 5. Update Counter & Navigation
+      cardCounter.textContent = `ကတ် ${toMyanmarNum(currentCardIndex + 1)} / ${toMyanmarNum(activeDeck.length)}`;
+      btnPrev.disabled = activeDeck.length <= 1;
+      btnNext.disabled = activeDeck.length <= 1;
+
+      // Always reset to front face on card change
+      flashcard.classList.remove('flipped');
+    }
+
+    // ========================================================================
+    // 8. 3D Card Flip Listeners & Touch Swipe Navigation
+    // ========================================================================
+    function toggleCardFlip() {
+      flashcard.classList.toggle('flipped');
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let swipedRecently = false;
+
+    // Mobile / Tablet Touchscreen Swipe Navigation (Swipe Left = Next, Swipe Right = Prev)
+    cardStage.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+        swipedRecently = false;
+      }
+    }, { passive: true });
+
+    cardStage.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        const deltaTime = Date.now() - touchStartTime;
+
+        if (Math.abs(deltaX) >= 42 && Math.abs(deltaX) > Math.abs(deltaY) * 1.35 && deltaTime < 500) {
+          swipedRecently = true;
+          setTimeout(() => { swipedRecently = false; }, 300);
+
+          if (deltaX < 0) {
+            if (activeDeck.length > 0) displayCard(currentCardIndex + 1);
+          } else {
+            if (activeDeck.length > 0) displayCard(currentCardIndex - 1);
+          }
+        }
+      }
+    }, { passive: true });
+
+    cardStage.addEventListener('click', (e) => {
+      if (swipedRecently) return;
+      if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) return;
+      toggleCardFlip();
+    });
+
+    btnFlip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCardFlip();
+    });
+
+    // ========================================================================
+    // 9. Previous & Next Navigation
+    // ========================================================================
+    btnPrev.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeDeck.length > 0) displayCard(currentCardIndex - 1);
+    });
+
+    btnNext.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeDeck.length > 0) displayCard(currentCardIndex + 1);
+    });
+
+    // ========================================================================
+    // 10. Study Actions: To Review & Memorized (with Supabase UPDATE)
+    // ========================================================================
+    /**
+     * Updates the status column of a flashcard row in Supabase by card.id.
+     * @param {Object} card - The card object containing id and kanji
+     * @param {'learning'|'review'|'memorized'} newStatus - New status value
+     */
+    async function updateCardStatusInSupabase(card, newStatus) {
+      if (!supabaseClient) {
+        console.warn('[Supabase] Client not initialized. Card status only updated locally.');
+        return;
+      }
+
+      try {
+        console.log(`[Supabase UPDATE] Updating card id=${card.id || 'N/A'} (kanji=${card.kanji}) status to "${newStatus}"...`);
+        let query = supabaseClient.from('flashcards').update({ status: newStatus });
+
+        if (card.id !== undefined && card.id !== null) {
+          query = query.eq('id', card.id);
+        } else {
+          query = query.eq('kanji', card.kanji);
+        }
+
+        const { data, error, status } = await query.select();
+
+        if (error) {
+          console.error('[Supabase UPDATE Error]:', {
+            message: error.message,
+            code: error.code,
+            status: status
+          });
+          if (error.code === '42501' || status === 401 || status === 403) {
+            console.warn('[Supabase RLS Warning]: Row-Level Security UPDATE policy is missing. Please add an UPDATE policy on "flashcards" table in Supabase.');
+            showToast('⚠️ Supabase: RLS Update Policy စစ်ဆေးရန် လိုအပ်ပါသည်');
+          } else {
+            showToast(`⚠️ Supabase သို့ ပြင်ဆင်ချက် ပေးပို့ရာတွင် ချို့ယွင်းချက်: ${error.message}`);
+          }
+        } else {
+          console.log(`[Supabase UPDATE Success]: Card id=${card.id} updated to "${newStatus}".`, data);
+        }
+      } catch (err) {
+        console.error('[Supabase UPDATE Exception]:', err);
+      }
+    }
+
+    async function markAsReview() {
+      const card = activeDeck[currentCardIndex];
+      if (!card) return;
+
+      // 1. Update status on the card in memory
+      card.status = 'review';
+      saveUserDeck(masterDeck);
+
+      // 2. Update local study progress and localStorage
+      const prev = studyProgress[card.kanji] || { reviewCount: 0 };
+      const newReviewCount = (prev.reviewCount || 0) + 1;
+
+      studyProgress[card.kanji] = {
+        status: 'review',
+        reviewCount: newReviewCount,
+        lastReviewed: Date.now()
+      };
+      saveStudyProgress();
+
+      // 3. Update badges and action buttons
+      updateStatusBadges('review');
+      if (btnToReview) btnToReview.classList.add('is-active');
+      if (btnMemorized) btnMemorized.classList.remove('is-active');
+      updateFilterCounts();
+
+      // 4. Display Revisions to Remember box
+      if (cardRevisionBox) {
+        cardRevisionBox.style.display = 'flex';
+        cardRevisionBox.classList.remove('pulse-highlight');
+        void cardRevisionBox.offsetWidth;
+        cardRevisionBox.classList.add('pulse-highlight');
+        cardRevisionCount.textContent = `ပြန်ကျက်: ${toMyanmarNum(newReviewCount)} ကြိမ်`;
+
+        const mnemonicText = card.mnemonic || `「${card.kanji}」- မြန်မာအဓိပ္ပာယ်မှာ 「${card.myanmar}」 ဖြစ်ပါသည်။ အဓိပ္ပာယ်နှင့် အသံထွက်ကို မှတ်မိစေရန် အထူးဂရုပြု ပြန်လည်ကျက်မှတ်ပါ။`;
+        cardRevisionMnemonic.textContent = mnemonicText;
+      }
+
+      // 5. Flip card to back
+      if (!flashcard.classList.contains('flipped')) {
+        setTimeout(() => {
+          flashcard.classList.add('flipped');
+        }, 150);
+      }
+
+      // 6. Native Japanese pronunciation
+      speakKanji(card.kanji);
+
+      showToast(`⚠️ 「${card.kanji}」ကို 'ပြန်ကျက်ရန်' (To Review) အဖြစ် သိမ်းဆည်းလိုက်ပါပြီ`);
+
+      // 7. Persist to Supabase database by card.id
+      await updateCardStatusInSupabase(card, 'review');
+    }
+
+    async function markAsMemorized() {
+      const card = activeDeck[currentCardIndex];
+      if (!card) return;
+
+      // 1. Update status on the card in memory
+      card.status = 'memorized';
+      saveUserDeck(masterDeck);
+
+      // 2. Update local study progress and localStorage
+      const prev = studyProgress[card.kanji] || { reviewCount: 0 };
+      studyProgress[card.kanji] = {
+        status: 'memorized',
+        reviewCount: prev.reviewCount || 0,
+        lastReviewed: Date.now()
+      };
+      saveStudyProgress();
+
+      // 3. Update badges and action buttons
+      updateStatusBadges('memorized');
+      if (btnMemorized) btnMemorized.classList.add('is-active');
+      if (btnToReview) btnToReview.classList.remove('is-active');
+      updateFilterCounts();
+
+      showToast(`✅ 「${card.kanji}」ကို 'မှတ်မိပြီ' (Memorized) အဖြစ် သိမ်းဆည်းလိုက်ပါပြီ`);
+
+      // 4. Persist to Supabase database by card.id
+      await updateCardStatusInSupabase(card, 'memorized');
+
+      // 5. If viewing filtered list, refresh filter; otherwise smoothly advance
+      if (currentFilter === 'REVIEW' || currentFilter === 'UNLEARNED' || currentFilter === 'LEARNING') {
+        setTimeout(() => {
+          setFilter(currentFilter);
+        }, 500);
+      } else {
+        setTimeout(() => {
+          if (activeDeck.length > 1 && currentCardIndex < activeDeck.length - 1) {
+            displayCard(currentCardIndex + 1);
+          }
+        }, 550);
+      }
+    }
+
+    const markAsLearned = markAsMemorized;
+    const markAsUnlearned = markAsReview;
+
+    if (btnMemorized) {
+      btnMemorized.addEventListener('click', (e) => {
+        e.stopPropagation();
+        markAsMemorized();
+      });
+    }
+
+    if (btnToReview) {
+      btnToReview.addEventListener('click', (e) => {
+        e.stopPropagation();
+        markAsReview();
+      });
+    }
+
+    // ========================================================================
+    // 11. Revisions Drawer / Modal Management
+    // ========================================================================
+    function renderRevisionsModal() {
+      const reviewCards = masterDeck.filter(c => getCardStatus(c) === 'review');
+      if (modalRevisionsCount) modalRevisionsCount.textContent = toMyanmarNum(reviewCards.length);
+
+      if (reviewCards.length === 0) {
+        modalRevisionsList.innerHTML = `
+          <div style="text-align: center; padding: 2rem 1rem; color: var(--text-secondary);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎉</div>
+            <p style="font-size: 1rem; font-weight: 700; color: #34d399; font-family: var(--font-myanmar); line-height: var(--lh-myanmar);">
+              ဂုဏ်ယူပါသည်! ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီ မရှိသေးပါ။
+            </p>
+            <p style="font-size: 0.8rem; line-height: var(--lh-myanmar); margin-top: 0.25rem;">
+              ကန်ဂျီကတ်တစ်ခုခုကို ပြန်ကျက်လိုပါက 'To Review (ပြန်ကျက်ရန်)' နှိပ်၍ စာရင်းထဲ ထည့်နိုင်ပါသည်။
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      modalRevisionsList.innerHTML = reviewCards.map((card, idx) => {
+        const revCount = getCardReviewCount(card.kanji);
+        return `
+          <div class="modal-revision-card">
+            <div class="modal-rev-left">
+              <span class="modal-rev-kanji">${card.kanji}</span>
+              <div class="modal-rev-info">
+                ${card.reading ? `<span class="modal-rev-reading">${card.reading}</span>` : ''}
+                <span class="modal-rev-myanmar">${card.myanmar}</span>
+                ${card.mnemonic ? `<span class="modal-rev-mnemonic">💡 ${card.mnemonic}</span>` : ''}
+              </div>
+            </div>
+            <div class="modal-rev-actions">
+              <span class="revision-counter-tag">ပြန်ကျက်: ${toMyanmarNum(revCount)} ကြိမ်</span>
+              <div style="display: flex; gap: 0.4rem; margin-top: 0.2rem;">
+                <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="jumpToRevisionCard('${card.kanji}')">
+                  လေ့ကျင့်မည်
+                </button>
+                <button type="button" class="btn btn-primary" style="background: #10b981; padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="markLearnedFromModal('${card.kanji}')">
+                  ✓ မှတ်မိပြီ
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.jumpToRevisionCard = function(kanji) {
+      if (revisionsModal.open) revisionsModal.close();
+      setFilter('ALL');
+      const idx = masterDeck.findIndex(c => c.kanji === kanji);
+      if (idx !== -1) {
+        displayCard(idx);
+        setTimeout(() => flashcard.classList.add('flipped'), 200);
+      }
+    };
+
+    window.markLearnedFromModal = async function(kanji) {
+      const targetCard = masterDeck.find(c => c.kanji === kanji);
+      if (targetCard) {
+        targetCard.status = 'memorized';
+      }
+
+      const prev = studyProgress[kanji] || {};
+      studyProgress[kanji] = {
+        status: 'memorized',
+        reviewCount: prev.reviewCount || 0,
+        lastReviewed: Date.now()
+      };
+      saveStudyProgress();
+      updateFilterCounts();
+      renderRevisionsModal();
+      showToast(`✅ 「${kanji}」ကို မှတ်မိပြီ (Memorized) အဖြစ် သတ်မှတ်လိုက်ပါပြီ`);
+
+      if (targetCard) {
+        await updateCardStatusInSupabase(targetCard, 'memorized');
+      }
+
+      const currentCard = activeDeck[currentCardIndex];
+      if (currentCard && currentCard.kanji === kanji) {
+        displayCard(currentCardIndex);
+      }
+    };
+
+    btnRevisionsDrawer.addEventListener('click', () => {
+      renderRevisionsModal();
+      revisionsModal.showModal();
+    });
+
+    btnCloseModal.addEventListener('click', () => {
+      revisionsModal.close();
+    });
+
+    revisionsModal.addEventListener('click', (e) => {
+      if (e.target === revisionsModal) {
+        revisionsModal.close();
+      }
+    });
+
+    btnStudyRevisionsNow.addEventListener('click', () => {
+      revisionsModal.close();
+      setFilter('REVIEW');
+      showToast('⚠️ ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီများကိုသာ ပြသထားပါသည်');
+    });
+
+    // ========================================================================
+    // 12. Keyboard Shortcuts
+    // ========================================================================
+    window.addEventListener('keydown', (e) => {
+      // Don't trigger when a modal dialog is open (except Escape)
+      if (revisionsModal.open) {
+        if (e.key === 'Escape') revisionsModal.close();
+        return;
+      }
+
+      switch (e.code) {
+        case 'Space':
+        case 'KeyF':
+          e.preventDefault();
+          toggleCardFlip();
+          break;
+
+        case 'ArrowRight':
+        case 'KeyJ':
+          e.preventDefault();
+          if (activeDeck.length > 0) displayCard(currentCardIndex + 1);
+          break;
+
+        case 'ArrowLeft':
+        case 'KeyK':
+          e.preventDefault();
+          if (activeDeck.length > 0) displayCard(currentCardIndex - 1);
+          break;
+
+        case 'Digit1':
+        case 'KeyL':
+          e.preventDefault();
+          markAsMemorized();
+          break;
+
+        case 'Digit2':
+        case 'KeyU':
+          e.preventDefault();
+          markAsReview();
+          break;
+
+        case 'KeyR':
+          e.preventDefault();
+          setFilter(currentFilter === 'REVIEW' ? 'ALL' : 'REVIEW');
+          showToast(currentFilter === 'REVIEW' ? '⚠️ ပြန်ကျက်ရန် စာရင်း (To Review Mode)' : '📋 ကတ်အားလုံး (All Cards)');
+          break;
+
+        case 'KeyA':
+          e.preventDefault();
+          {
+            const card = activeDeck[currentCardIndex];
+            if (card) speakKanji(card.kanji);
+          }
+          break;
+
+        case 'KeyS':
+          e.preventDefault();
+          reshuffleCurrentDeck();
+          break;
+      }
+    });
+
+    // ========================================================================
+    // 13. PDF Import & Parsing Engine
+    // ========================================================================
+    const pdfImportInput = document.getElementById('pdf-import-input');
+
+    function parseKanjiText(rawText) {
+      if (!rawText || typeof rawText !== 'string') return [];
+
+      const normalizedText = rawText.normalize('NFC');
+      const rawLines = normalizedText.split(/\r?\n/);
+      const parsedCards = [];
+      const seen = new Set();
+
+      const isJapanese = str => /[\u3040-\u30ff\u4e00-\u9faf\u3400-\u4dbf]/.test(str);
+      const isMyanmar = str => /[\u1000-\u109f\uaa60-\uaa7f\ua9e0-\ua9fe]/.test(str);
+
+      function cleanJap(str) {
+        if (!str) return '';
+        let s = str.trim();
+        // Strip leading list numbers, fullwidth numbers, bullets
+        s = s.replace(/^[\d\u1040-\u1049\uff10-\uff19a-zA-Z]+[\.\uff0e\)\s、\:\-―ー~～•●○▪▫◆◇]+\s*/, '');
+        s = s.replace(/^[•●○▪▫◆◇\-–—―ー~～:：=＝\t\s]+/, '');
+        // Remove spurious spaces between kanji/kana inside Japanese word
+        s = s.replace(/([\u4e00-\u9faf\u3040-\u30ff])\s+([\u3040-\u30ff])/g, '$1$2');
+        s = s.replace(/([\u4e00-\u9faf\u3040-\u30ff])\s+([\u3040-\u30ff])/g, '$1$2');
+        // Strip trailing punctuation
+        s = s.replace(/[-–—―~～:：=＝\t\s,]+$/, '');
+        return s.trim();
+      }
+
+      function cleanMyan(str) {
+        if (!str) return '';
+        let s = str.trim();
+        s = s.replace(/^[\d\u1040-\u1049\uff10-\uff19a-zA-Z]+[\.\uff0e\)\s、\:\-―ー~～•●○▪▫◆◇]+\s*/, '');
+        s = s.replace(/^[•●○▪▫◆◇\-–—―ー~～:：=＝\t\s]+/, '');
+        s = s.replace(/[-–—―~～:：=＝\t\s,]+$/, '');
+        return s.trim();
+      }
+
+      function addCard(japRaw, myanRaw, readingRaw = '') {
+        let j = cleanJap(japRaw);
+        let m = cleanMyan(myanRaw);
+        let r = (readingRaw || '').trim();
+
+        // Check reading in brackets e.g. "起きる（おきる）" or "米（こめ）"
+        if (!r) {
+          const bMatch = j.match(/[\(（\[【]([\u3040-\u30ff\s\w]+)[\)）\]】]/);
+          if (bMatch) {
+            r = bMatch[1].replace(/\s+/g, '').trim();
+            j = j.replace(/[\(（\[【][\u3040-\u30ff\s\w]+[\)）\]】]/g, '').trim();
+          }
+        }
+
+        if (!j || !m) return;
+        if (!isJapanese(j) || !isMyanmar(m)) return;
+
+        // Resolve Hiragana if empty
+        if (!r) {
+          r = getHiraganaForKanji(j, m);
+        }
+
+        const key = j + '::' + m;
+        if (!seen.has(key)) {
+          seen.add(key);
+          parsedCards.push({
+            kanji: j,
+            reading: r,
+            myanmar: m,
+            mnemonic: `「${j}」${r ? ` (${r})` : ''} ၏ မြန်မာအဓိပ္ပာယ်မှာ 「${m}」 ဖြစ်ပါသည်။ အသံထွက်နှင့် အဓိပ္ပာယ်ကို သတိရပါ။`
+          });
+        }
+      }
+
+      const lines = rawLines.map(l => l.trim()).filter(Boolean);
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (isJapanese(line) && isMyanmar(line)) {
+          // Pattern 1: Japanese with Myanmar in parens e.g. "米 ( ဆန် / စပါး )" or "大 ( ကြီးသော )"
+          const myanParenMatch = line.match(/^([^\(（]+)[\(（]([^\)）]*[\u1000-\u109f][^\)）]*)[\)）](.*)$/);
+          if (myanParenMatch && isJapanese(myanParenMatch[1])) {
+            addCard(myanParenMatch[1], myanParenMatch[2] + (myanParenMatch[3] ? ' ' + myanParenMatch[3] : ''));
+            continue;
+          }
+
+          // Pattern 2: Explicit separator e.g. "起きる（おきる）：အိပ်ရာထသည်။" or "おはよう ー မင်္ဂလာပါ"
+          // Supports -, –, —, ―, ー, ~, ～, :, ：, =, ＝, |, ｜, \t, /, ／
+          const sepRegex = /\s*[-–—―ー~～:：=＝|｜\t/／]\s*/;
+          if (sepRegex.test(line)) {
+            const parts = line.split(sepRegex).map(p => p.trim()).filter(Boolean);
+            if (parts.length >= 2) {
+              if (isJapanese(parts[0]) && isMyanmar(parts[parts.length - 1])) {
+                let read = '';
+                let myan = '';
+                if (parts.length >= 3 && isJapanese(parts[1]) && !isMyanmar(parts[1])) {
+                  read = parts[1];
+                  myan = parts.slice(2).join(' - ');
+                } else {
+                  myan = parts.slice(1).join(' - ');
+                }
+                addCard(parts[0], myan, read);
+                continue;
+              } else if (isMyanmar(parts[0]) && isJapanese(parts[parts.length - 1])) {
+                // Reversed order: Myanmar first, Japanese second
+                addCard(parts[parts.length - 1], parts.slice(0, -1).join(' - '));
+                continue;
+              }
+            }
+          }
+
+          // Pattern 3: Space boundary between Japanese and Myanmar text
+          // e.g. "糸 （ いと ） အပ်ချည်မျှင်" or "早起き စောစောထသည်"
+          const boundaryMatch = line.match(/^([\u3040-\u30ff\u4e00-\u9faf\u3400-\u4dbf\s\(\)（）【】\[\]「」『』～~・\d\.]+?)\s+([\u1000-\u109f\uaa60-\uaa7f\ua9e0-\ua9fe].*)$/);
+          if (boundaryMatch) {
+            addCard(boundaryMatch[1], boundaryMatch[2]);
+            continue;
+          }
+        }
+
+        // Pattern 4: Consecutive lines: Line i has Japanese, Line i+1 has Myanmar
+        if (i + 1 < lines.length) {
+          const curr = lines[i];
+          const next = lines[i + 1];
+          if (isJapanese(curr) && !isMyanmar(curr) && isMyanmar(next) && !isJapanese(next)) {
+            addCard(curr, next);
+            i++;
+            continue;
+          }
+        }
+      }
+
+      return parsedCards;
+    }
+
+    async function extractTextFromPDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+
+      let fullText = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+
+        // Sort items by Y (top to bottom) and X (left to right) for accurate line & column order
+        const sortedItems = textContent.items.filter(it => it.str !== undefined);
+        sortedItems.sort((a, b) => {
+          const yA = a.transform[5];
+          const yB = b.transform[5];
+          if (Math.abs(yA - yB) <= 6) {
+            return a.transform[4] - b.transform[4];
+          }
+          return yB - yA;
+        });
+
+        let pageText = '';
+        let lastY = null;
+        let lastX = null;
+
+        for (const item of sortedItems) {
+          const curX = item.transform[4];
+          const curY = item.transform[5];
+          const str = item.str;
+
+          if (lastY !== null && Math.abs(curY - lastY) > 6) {
+            pageText += '\n';
+          } else if (lastX !== null && curX - lastX > 25) {
+            pageText += ' \t ';
+          } else if (pageText.length > 0 && !pageText.endsWith(' ') && !pageText.endsWith('\n') && !pageText.endsWith('\t')) {
+            pageText += ' ';
+          }
+
+          pageText += str;
+          lastY = curY;
+          lastX = curX + (item.width || (str.length * 8));
+        }
+
+        fullText += pageText + '\n';
+      }
+
+      return fullText;
+    }
+
+    pdfImportInput.addEventListener('change', async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      console.log(`[Import] Processing file: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+
+      try {
+        let extractedText = '';
+        const fileNameLower = file.name.toLowerCase();
+
+        // Support plain text / CSV files as well as PDF files
+        if (fileNameLower.endsWith('.csv') || fileNameLower.endsWith('.txt')) {
+          extractedText = await file.text();
+          console.log('[Import CSV/TXT] Extracted raw text length:', extractedText.length);
+        } else {
+          extractedText = await extractTextFromPDF(file);
+          console.log('[Import PDF] Extracted raw text length:', extractedText.length);
+        }
+
+        // Apply Regex parsing and spacing fix
+        const flashcardArray = parseKanjiText(extractedText);
+        console.log('✅ [Extracted Kanji Flashcards Array]:', flashcardArray);
+
+        if (flashcardArray.length === 0) {
+          if (!extractedText || extractedText.trim().length === 0) {
+            alert('သတိပေးချက်: ဤ PDF ဖိုင်ထဲတွင် စာသား (Text) မပါရှိပါ။ Scanned Image (ရုပ်ပုံသီးသန့်) ဖြစ်နေနိုင်ပါသည်။ စာသားပါသော PDF (သို့) CSV / TXT ဖိုင်ကို အသုံးပြုပါ။');
+          } else {
+            console.warn('[Import Warning] Extracted text could not be parsed as flashcards. Sample text:', extractedText.slice(0, 500));
+            alert('သတိပေးချက်: ဖိုင်ထဲမှ ဂျပန်စာနှင့် မြန်မာအဓိပ္ပာယ် တွဲလျက်စာရင်းကို ရှာမတွေ့ပါ။ ဖိုင်အတွင်း ဂျပန်စာနှင့် မြန်မာစာ ပါဝင်မှုရှိမရှိ စစ်ဆေးပေးပါ။');
+          }
+        } else {
+          // 1. Immediately replace old deck and clear old study progress locally for this user
+          console.log(`[Import] Setting new deck for user session: ${currentUserId}...`);
+          masterDeck = flashcardArray.map((item, idx) => ({
+            ...item,
+            pdfOrder: idx + 1,
+            status: 'learning'
+          }));
+          saveUserDeck(masterDeck); // Persist immediately to current user's localStorage!
+          clearAllProgress(); // Purges old kanji from study progress & localStorage
+
+          // Automatically activate Custom Memory Retention Order (never raw PDF order)
+          currentOrderMode = 'SMART';
+          localStorage.setItem(ORDER_STORAGE_KEY, 'SMART');
+
+          currentCardIndex = 0;
+          flashcard.classList.remove('flipped');
+          if (cardStage) cardStage.style.display = 'block';
+          if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+          if (orderBar) orderBar.style.display = 'flex';
+
+          setFilter('ALL');
+          showToast(`🧠 PDF မှ ကန်ဂျီ (${toMyanmarNum(flashcardArray.length)}) ခု ထည့်သွင်းပြီးပါပြီ။ မှတ်ဉာဏ်ပိုကောင်းစေရန် Custom Memory Order ဖြင့် စီစဉ်ထားပါသည်!`);
+
+          // 2. Safely sync to Supabase scoped to this user's ID
+          if (supabaseClient) {
+            try {
+              // Step A: Delete ONLY this user's existing records (NEVER touch other users' records!)
+              console.log(`[Supabase Scoped Clean] Deleting old records for user: ${currentUserId}...`);
+              const { error: delError, status: delStatus } = await supabaseClient
+                .from('flashcards')
+                .delete()
+                .eq('user_id', currentUserId);
+
+              if (delError) {
+                if (delError.code === 'PGRST204' || (delError.message && delError.message.includes('user_id'))) {
+                  console.warn('[Supabase Isolation Note]: "user_id" column not yet present in Supabase table. Using local-first isolation.');
+                } else {
+                  console.warn('[Supabase Scoped Delete Error]:', delError.message);
+                }
+              } else {
+                console.log(`[Supabase Scoped Delete Success]: Previous records cleared for user ${currentUserId}.`);
+              }
+
+              // Step B: Bulk insert new payload scoped with user_id
+              console.log(`[Supabase Scoped Bulk Insert] Inserting records for user: ${currentUserId}...`);
+              const userPayload = flashcardArray.map(item => ({
+                kanji: item.kanji,
+                myanmar_meaning: item.myanmar,
+                status: 'learning',
+                user_id: currentUserId
+              }));
+
+              let insertResponse = await supabaseClient.from('flashcards').insert(userPayload).select();
+
+              // Fallback: If 'user_id' column is missing in Supabase schema (PGRST204)
+              if (insertResponse && insertResponse.error && (insertResponse.error.code === 'PGRST204' || (insertResponse.error.message && insertResponse.error.message.includes('user_id')))) {
+                console.warn('[Supabase Schema Note]: "user_id" column not in table. Cards remain isolated in local browser storage.');
+                showToast('💾 ကန်ဂျီများကို သင့်စက်တွင် လုံခြုံစွာ သိမ်းဆည်းပြီးပါပြီ (Local-First Isolation)');
+              } else if (insertResponse && insertResponse.error) {
+                console.error('[Supabase Insert Error]:', insertResponse.error);
+                showToast(`💾 ဒေတာကို သင့်စက်တွင် သိမ်းဆည်းပြီးပါပြီ`);
+              } else if (insertResponse && insertResponse.data && insertResponse.data.length > 0) {
+                masterDeck = insertResponse.data.map((item, idx) => {
+                  const fallbackReading = flashcardArray[idx]?.reading || getHiraganaForKanji(item.kanji, item.myanmar_meaning || item.myanmar);
+                  return {
+                    id: item.id,
+                    kanji: item.kanji,
+                    myanmar: item.myanmar_meaning || item.myanmar,
+                    status: (item.status || 'learning').toLowerCase().trim(),
+                    reading: item.reading || fallbackReading || '',
+                    pdfOrder: idx + 1,
+                    mnemonic: item.mnemonic || `「${item.kanji}」${fallbackReading ? ` (${fallbackReading})` : ''} - မြန်မာအဓိပ္ပာယ်မှာ 「${item.myanmar_meaning || item.myanmar}」 ဖြစ်ပါသည်။`,
+                    vocab: Array.isArray(item.vocab) ? item.vocab : []
+                  };
+                });
+                saveUserDeck(masterDeck);
+                currentOrderMode = 'SMART';
+                setFilter('ALL');
+                showToast(`☁️ Supabase နှင့် သင့်စက်တွင် ကန်ဂျီအသစ် (${toMyanmarNum(insertResponse.data.length)}) ခု သိမ်းဆည်းပြီးပါပြီ (Custom Order Active)`);
+              }
+            } catch (supaErr) {
+              console.error('[Supabase Scoped Insert Exception]:', supaErr);
+              showToast('💾 ကန်ဂျီများကို သင့်စက်တွင် သိမ်းဆည်းပြီးပါပြီ');
+            }
+          } else {
+            console.log('[Import] Local-first mode active. Deck saved to localStorage.');
+          }
+        }
+      } catch (error) {
+        console.error('[Import File Error]:', error);
+        alert('ဖိုင်ဖတ်ရှုရာတွင် ချို့ယွင်းချက် ဖြစ်ပေါ်ပါသည်: ' + error.message);
+      } finally {
+        pdfImportInput.value = '';
+      }
+    });
+
+    // Sample Loader Button (Clears current deck and loads starter sample for this user)
+    const btnLoadSample = document.getElementById('btn-load-sample');
+    if (btnLoadSample) {
+      btnLoadSample.addEventListener('click', async () => {
+        masterDeck = DEFAULT_KANJI_DECK.map((item, idx) => ({
+          ...item,
+          pdfOrder: idx + 1,
+          status: 'learning'
+        }));
+        saveUserDeck(masterDeck);
+        clearAllProgress();
+        currentCardIndex = 0;
+        flashcard.classList.remove('flipped');
+        if (cardStage) cardStage.style.display = 'block';
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+        if (orderBar) orderBar.style.display = 'flex';
+
+        currentOrderMode = 'SMART';
+        localStorage.setItem(ORDER_STORAGE_KEY, 'SMART');
+
+        setFilter('ALL');
+        showToast('🧠 နမူနာကတ်များကို မှတ်ဉာဏ်တိုးစေမည့် Custom Memory Order ဖြင့် စီစဉ်ထားပါသည်');
+
+        // Sync fresh sample deck to Supabase scoped to current user
+        if (supabaseClient) {
+          try {
+            await supabaseClient.from('flashcards').delete().eq('user_id', currentUserId);
+            const samplePayload = DEFAULT_KANJI_DECK.map(item => ({
+              kanji: item.kanji,
+              myanmar_meaning: item.myanmar,
+              status: 'learning',
+              user_id: currentUserId
+            }));
+            const { data } = await supabaseClient.from('flashcards').insert(samplePayload).select();
+            if (data && data.length > 0) {
+              masterDeck = data.map((item, idx) => {
+                const fallbackReading = DEFAULT_KANJI_DECK[idx]?.reading || getHiraganaForKanji(item.kanji, item.myanmar_meaning || item.myanmar);
+                return {
+                  id: item.id,
+                  kanji: item.kanji,
+                  myanmar: item.myanmar_meaning || item.myanmar,
+                  status: (item.status || 'learning').toLowerCase().trim(),
+                  reading: item.reading || fallbackReading || '',
+                  pdfOrder: idx + 1,
+                  mnemonic: item.mnemonic || `「${item.kanji}」${fallbackReading ? ` (${fallbackReading})` : ''} - မြန်မာအဓိပ္ပာယ်မှာ 「${item.myanmar_meaning || item.myanmar}」 ဖြစ်ပါသည်။`,
+                  vocab: Array.isArray(item.vocab) ? item.vocab : []
+                };
+              });
+              saveUserDeck(masterDeck);
+              currentOrderMode = 'SMART';
+              setFilter('ALL');
+            }
+            console.log('[Supabase] User sample deck synced cleanly.');
+          } catch (err) {
+            console.warn('[Supabase Sample Deck Sync Note]:', err);
+          }
+        }
+      });
+    }
+
+    // ========================================================================
+    // Clear Current User's Flashcards & Study Records
+    // ========================================================================
+    const btnClearAll = document.getElementById('btn-clear-all');
+    if (btnClearAll) {
+      btnClearAll.addEventListener('click', async () => {
+        const confirmMsg = 'သတိပေးချက်: သင်၏ လက်ရှိ ကန်ဂျီကတ်များနှင့် လေ့လာမှုမှတ်တမ်းများကို ရှင်းလင်းမည်မှာ သေချာပါသလား?\n\nAre you sure you want to clear your current flashcards and study progress?';
+        if (!confirm(confirmMsg)) return;
+
+        console.log(`[Clear Deck] Clearing records for user session: ${currentUserId}...`);
+
+        // 1. Clear local memory and study progress for this user
+        masterDeck = [];
+        activeDeck = [];
+        currentCardIndex = 0;
+        clearUserDeck();
+        clearAllProgress();
+
+        // 2. Hide card stage and display the upload placeholder
+        if (cardStage) cardStage.style.display = 'none';
+        if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
+        if (orderBar) orderBar.style.display = 'none';
+
+        // 3. Update filter counts and badges to 0
+        updateFilterCounts();
+        if (revisionsCountBadge) revisionsCountBadge.textContent = '၀';
+
+        showToast('🗑️ သင်၏ ကတ်ပြားများကို ရှင်းလင်းနေပါသည်...');
+
+        // 4. Delete ONLY current user's rows from Supabase 'flashcards' table
+        if (supabaseClient) {
+          try {
+            console.log(`[Supabase Scoped Delete] Purging records for user: ${currentUserId}...`);
+            const { error, status } = await supabaseClient
+              .from('flashcards')
+              .delete()
+              .eq('user_id', currentUserId);
+
+            if (error && error.code !== 'PGRST204') {
+              console.warn('[Supabase Scoped Delete Error]:', error.message);
+            } else {
+              console.log(`[Supabase Scoped Delete Success]: Records cleared for user: ${currentUserId}.`);
+            }
+          } catch (err) {
+            console.error('[Supabase Scoped Delete Exception]:', err);
+          }
+        }
+        showToast('✅ သင်၏ ကန်ဂျီကတ်များကို အောင်မြင်စွာ ရှင်းလင်းပြီးပါပြီ');
+      });
+    }
+
+    // ========================================================================
+    // 14. Export PDF Engine (Supports All Cards or Revisions Only)
+    // ========================================================================
+    const btnExportPdf = document.getElementById('btn-export-pdf');
+
+    async function generatePdfFromCards(deckToExport, title, filename) {
+      if (!deckToExport || deckToExport.length === 0) {
+        alert('ထုတ်ယူရန် ကန်ဂျီ လက်ကွက်ကတ်များ မရှိပါ။');
+        return;
+      }
+
+      const originalHtml = btnExportPdf.innerHTML;
+      btnExportPdf.disabled = true;
+      btnExportPdf.innerHTML = `<span>Exporting...</span>`;
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const printContainer = document.createElement('div');
+        printContainer.style.position = 'fixed';
+        printContainer.style.left = '-9999px';
+        printContainer.style.top = '0';
+        printContainer.style.width = '794px';
+        printContainer.style.background = '#ffffff';
+        printContainer.style.color = '#1e293b';
+        printContainer.style.fontFamily = "'Pyidaungsu', 'Padauk', 'Noto Sans Myanmar', 'Noto Sans JP', sans-serif";
+        printContainer.style.padding = '30px';
+        printContainer.style.boxSizing = 'border-box';
+
+        const headerHtml = `
+          <div style="text-align: center; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px;">
+            <h1 style="font-size: 22px; color: #e63946; margin-bottom: 6px;">${title}</h1>
+            <p style="font-size: 13px; color: #64748b; line-height: 1.85;">ဂျပန်စာ ကန်ဂျီ လက်ကွက်ကတ်များ (စုစုပေါင်း ${deckToExport.length} ခု)</p>
+          </div>
+        `;
+
+        const cardsGridHtml = `
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            ${deckToExport.map((card, idx) => `
+              <div style="border: 2px solid #cbd5e1; border-radius: 12px; padding: 16px; background: #f8fafc; display: flex; flex-direction: column; justify-content: space-between; min-height: 170px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px;">
+                  <span style="font-size: 11px; font-weight: 700; color: #e63946; background: rgba(230,57,70,0.1); padding: 2px 8px; border-radius: 12px;">CARD #${idx + 1}</span>
+                  <span style="font-size: 11px; color: #f59e0b; font-weight: 600;">${getCardStatus(card.kanji) === 'unlearned' ? '⚠️ Revisions' : 'Learned'}</span>
+                </div>
+                
+                <div style="text-align: center; margin: 12px 0;">
+                  <div style="font-family: 'Noto Sans JP', sans-serif; font-size: 48px; font-weight: 700; color: #0f172a; line-height: 1;">
+                    ${card.kanji}
+                  </div>
+                </div>
+
+                <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                  ${card.reading ? `<div style="font-size: 11px; color: #f43f5e; font-family: 'Noto Sans JP'; margin-bottom: 3px;">အသံထွက်: ${card.reading}</div>` : ''}
+                  <div style="font-size: 15px; font-weight: 700; color: #0284c7; line-height: 1.85; word-break: break-word;">
+                    ${card.myanmar}
+                  </div>
+                  ${card.mnemonic ? `<div style="font-size: 11px; color: #64748b; margin-top: 4px; line-height: 1.6;">💡 ${card.mnemonic}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        printContainer.innerHTML = headerHtml + cardsGridHtml;
+        document.body.appendChild(printContainer);
+
+        const canvas = await html2canvas(printContainer, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+
+        document.body.removeChild(printContainer);
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        doc.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+          position = heightLeft - imgHeight;
+          doc.addPage();
+          doc.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+
+        doc.save(filename);
+        showToast(`📄 PDF ဖိုင်ကို အောင်မြင်စွာ သိမ်းဆည်းလိုက်ပါပြီ`);
+      } catch (error) {
+        console.error('[Export PDF Error]:', error);
+        alert('PDF ထုတ်ယူရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ပါသည်: ' + error.message);
+      } finally {
+        btnExportPdf.disabled = false;
+        btnExportPdf.innerHTML = originalHtml;
+      }
+    }
+
+    btnExportPdf.addEventListener('click', () => {
+      generatePdfFromCards(masterDeck, '漢字 Flashcards', 'Kanji-Flashcards.pdf');
+    });
+
+    if (btnExportRevisionsPdf) {
+      btnExportRevisionsPdf.addEventListener('click', () => {
+        const unlearnedCards = masterDeck.filter(c => getCardStatus(c.kanji) === 'unlearned');
+        if (unlearnedCards.length === 0) {
+          alert('ပြန်လည်ကျက်မှတ်ရန် ကန်ဂျီ မရှိသေးပါ။');
+          return;
+        }
+        generatePdfFromCards(unlearnedCards, '漢字 Revisions to Remember', 'Kanji-Revisions-To-Remember.pdf');
+      });
+    }
+
+    // ========================================================================
+    // 15. Application Bootstrapping (Local-First Multi-User Public Isolation)
+    // ========================================================================
+    const savedUserDeck = loadUserDeck();
+    if (savedUserDeck && savedUserDeck.length > 0) {
+      masterDeck = savedUserDeck.map((c, idx) => ({
+        ...c,
+        pdfOrder: typeof c.pdfOrder === 'number' ? c.pdfOrder : (idx + 1)
+      }));
+      if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+      if (cardStage) cardStage.style.display = 'block';
+      if (orderBar) orderBar.style.display = 'flex';
+    } else {
+      masterDeck = [];
+      if (uploadPlaceholder) uploadPlaceholder.style.display = 'flex';
+      if (cardStage) cardStage.style.display = 'none';
+      if (orderBar) orderBar.style.display = 'none';
+    }
+
+    updateUserSessionBadge();
+    loadStudyProgress();
+    updateOrderBarUI();
+    setFilter('ALL');
+    fetchFlashcards();
+  </script>
+</body>
+</html>
